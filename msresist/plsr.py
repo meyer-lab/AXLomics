@@ -1,15 +1,15 @@
 """PLSR analysis functions (plotting functions are located in msresist/figures/figure2)"""
 
+from sklearn.cross_decomposition import PLSRegression
+from sklearn.metrics import explained_variance_score
+from sklearn.model_selection import cross_val_predict
+import matplotlib.cm as cm
+import matplotlib.colors as colors
+import seaborn as sns
 import scipy as sp
 import numpy as np
 import pandas as pd
 impport pandas as pd
-import seaborn as sns
-import matplotlib.colors as colors
-import matplotlib.cm as cm
-from sklearn.model_selection import cross_val_predict
-from sklearn.metrics import explained_variance_score
-from sklearn.cross_decomposition import PLSRegression
 
 ###------------ PLSR model functions ------------------###
 
@@ -154,4 +154,3 @@ def plotScoresLoadings(ax, model, X, Y, ncl, treatments, pcX=1, pcY=2, data="clu
     ax[1].set_ylabel("Principal Component 2", fontsize=11)
     ax[1].axhline(y=0, color="0.25", linestyle="--")
     ax[1].axvline(x=0, color="0.25", linestyle="--")
-

@@ -81,8 +81,8 @@ def plotCenters_together(ddmc, X, ax):
     centers["Cluster"] = [1, 2, 3, 4, 5]
     m = pd.melt(centers, id_vars=["Cluster"], value_vars=list(centers.columns), value_name="p-signal", var_name="Lines")
     m["p-signal"] = m["p-signal"].astype("float64")
-    sns.set_context("paper", rc={'lines.linewidth': 1}) 
-    palette ={1: "C0", 2: "C1", 3: "C2", 4: "C3", 5: "k"}
+    sns.set_context("paper", rc={'lines.linewidth': 1})
+    palette = {1: "C0", 2: "C1", 3: "C2", 4: "C3", 5: "k"}
     sns.pointplot(x="Lines", y="p-signal", data=m, hue="Cluster", ax=ax, palette=palette, dashes=False, **{"linewidth": 0})
 
 

@@ -3,7 +3,7 @@ This creates Supplemental Figure 4: Motifs
 """
 
 import numpy as np
-import pandas as pd 
+import pandas as pd
 import matplotlib
 import seaborn as sns
 from .common import subplotLabel, getSetup
