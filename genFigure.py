@@ -13,10 +13,7 @@ logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 if __name__ == "__main__":
     nameOut = "figure" + sys.argv[1]
 
-    if "M" in nameOut:
-        fdir = "./output/method/"
-    else:
-        fdir = "./output/biol/"
+    fdir = "./output/"
 
     start = time.time()
 
