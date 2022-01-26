@@ -114,7 +114,7 @@ def plotHyerGeomTestDasDRGenes(ax):
     Counts generated using GenerateHyperGeomTestParameters()."""
     hg = pd.DataFrame()
     hg["Cluster"] = np.arange(5) + 1
-    hg["p_value"] = [0.527, 0.003, 0.002, 0.404, 0.0557]
+    hg["p_value"] = [0.160, 0.260, 0.013, 0.578, 0.0328]
     sns.barplot(data=hg, x="Cluster", y="p_value", ax=ax, color="darkblue", **{"linewidth": 1}, **{"edgecolor": "black"})
     ax.set_title("Enrichment of Das-responsive Peptides")
     ax.set_ylim((0, 0.55))

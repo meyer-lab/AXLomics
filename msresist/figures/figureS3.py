@@ -1,18 +1,24 @@
 """
-This creates Supplemental Figure 2: Cell migration and island
+This creates Supplemental Figure 3: Specific phosphosites.
 """
 
 import matplotlib
-import numpy as np
+import pandas as pd
 import seaborn as sns
-from .common import subplotLabel, getSetup, IndividualTimeCourses, import_phenotype_data, barplot_UtErlAF154
-from ..distances import BarPlotRipleysK, PlotRipleysK
+from .common import subplotLabel, getSetup
+from ..pre_processing import preprocessing
+from .figure1 import plot_IdSites, plot_AllSites
+from ..pca import plotPCA_scoresORloadings
+from ..motifs import MapMotifs
+
+
+all_lines = ["WT", "KO", "KD", "KI", "Y634F", "Y643F", "Y698F", "Y726F", "Y750F", "Y821F"]
 
 
 def makeFigure():
     """Get a list of the axis objects and create a figure"""
     # Get list of axis objects
-    ax, f = getSetup((15, 10), (4, 6), multz={0: 1, 12: 1})
+    ax, f = getSetup((12, 4), (1, 4))
 
     # Add subplot labels
     subplotLabel(ax)
@@ -21,26 +27,21 @@ def makeFigure():
     matplotlib.rcParams['font.sans-serif'] = "Arial"
     sns.set(style="whitegrid", font_scale=1.2, color_codes=True, palette="colorblind", rc={"grid.linestyle": "dotted", "axes.linewidth": 0.6})
 
-    # Read in migration data
-    sw = import_phenotype_data(phenotype="Migration")
+    # Read in Mass Spec data
+    X = preprocessing(AXLm_ErlAF154=True, Vfilter=True, FCfilter=True, log2T=True, mc_col=True)
 
-    # Labels
-    lines = ["WT", "KO", "KI", "KD", "Y634F", "Y643F", "Y698F", "Y726F", "Y750F", "Y821F"]
-    tr1 = ["-UT", "-E", "-A/E"]
-    tr2 = ["Untreated", "Erlotinib", "Erl + AF154"]
-    t1 = ["UT", "AF", "-E", "A/E"]
-    t2 = ["Untreated", "AF154", "Erlotinib", "Erl + AF154"]
-    colors = ["white", "windows blue", "scarlet"]
-    mutants = ['PC9', 'KO', 'KIN', 'KD', 'M4', 'M5', 'M7', 'M10', 'M11', 'M15']
-    itp = 24
+    # PCA
+    data = X.set_index(["Gene"]).select_dtypes(include=float)
+    data.columns = all_lines
+    plotPCA_scoresORloadings(ax[0], data.reset_index(), 3, ["Gene"], "Signaling", plot="loadings")
 
-    # Time courses
-    for i, line in enumerate(lines):
-        IndividualTimeCourses(sw, 24, lines, t1, t2, "RWD %", plot=line, ax_=ax[i + 1])
-        PlotRipleysK('48hrs', mutants[i], ['ut', 'e', 'ae'], 6, ax=ax[i + 12], title=line)
+    # Specific p-sites
+    erk = {"MAPK1": "Y187-p", "MAPK3": "Y204-p"}
+    erk_rn = ["ERK2", "ERK1"]
 
-    # Bar plots
-    barplot_UtErlAF154(ax[0], lines, sw, 14, tr1, tr2, "fold-change RWD", "Cell Migration (t=14h)", TreatmentFC="-E", colors=colors, TimePointFC=itp)
-    BarPlotRipleysK(ax[11], '48hrs', mutants, lines, ['ut', 'e', 'ae'], tr2, 6, np.linspace(1.5, 14.67, 1), colors, TreatmentFC="Erlotinib", ylabel="fold-change K estimate")
+    plot_AllSites(ax[1], X.copy(), "AXL", "AXL", ylim=[-3, 2.5])
+    ax[1].legend(loc='upper left', prop={'size': 8})
+    plot_AllSites(ax[2], X.copy(), "EGFR", "EGFR", ylim=[-3, 2.5])
+    plot_IdSites(ax[3], X.copy(), erk, "ERK1/2", rn=erk_rn, ylim=[-3, 2.5])
 
     return f
