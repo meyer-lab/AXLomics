@@ -1,4 +1,4 @@
-flist = 2 S1 S2 S3 S4
+flist = S2 S3
 
 all: $(patsubst %, output/biol/figure%.svg, $(flist)) $(patsubst %, output/method/figure%.svg, $(fmlist))
 
@@ -11,7 +11,7 @@ output/biol/figure%.svg: venv genFigure.py msresist/figures/figure%.py
 
 venv: venv/bin/activate
 
-venv/bin/activate: requirements.txt msresist/data/AXLmutants_RNAseq_merged.feather
+venv/bin/activate: requirements.txt msresist/data/RNAseq/AXLmutants_RNAseq_merged.feather
 	test -d venv || virtualenv venv
 	. venv/bin/activate && pip install --prefer-binary -Uqr requirements.txt
 	touch venv/bin/activate
@@ -46,7 +46,7 @@ figprofile: venv
 testcover: venv
 	. venv/bin/activate && pytest --junitxml=junit.xml --cov=msresist --cov-report xml:coverage.xml
 
-msresist/data/AXLmutants_RNAseq_merged.feather: msresist/data/AXLmutants_RNAseq_merged.feather.xz
+msresist/data/RNAseq/AXLmutants_RNAseq_merged.feather: msresist/data/RNAseq/AXLmutants_RNAseq_merged.feather.xz
 	xz -vk -d $<
 
 %.pdf: %.ipynb
