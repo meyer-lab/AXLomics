@@ -16,14 +16,6 @@ venv/bin/activate: requirements.txt msresist/data/RNAseq/AXLmutants_RNAseq_merge
 test: venv
 	. venv/bin/activate && pytest -s -v -x msresist
 
-testprofile: venv
-	. venv/bin/activate && python3 -m cProfile -o profile /usr/local/bin/pytest -s
-	. venv/bin/activate && gprof2dot -f pstats --node-thres=5.0 profile | dot -Tsvg -o profile.svg
-
-figprofile: venv
-	. venv/bin/activate && python3 -m cProfile -o profile genFigure.py M2
-	. venv/bin/activate && python3 -m gprof2dot -f pstats --node-thres=5.0 profile | dot -Tsvg -o profile.svg
-
 testcover: venv
 	. venv/bin/activate && pytest --junitxml=junit.xml --cov=msresist --cov-report xml:coverage.xml
 
