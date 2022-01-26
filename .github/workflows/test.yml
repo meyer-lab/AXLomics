@@ -7,17 +7,15 @@ jobs:
     runs-on: self-hosted
     steps:
     - uses: actions/checkout@v2
-    - name: Setup submodule
-      run: git submodule update --init --recursive
     - name: Install dependencies
       run: |
-        git submodule update --init --recursive && make clean
+        make clean
         make venv
     - name: Test with pytest
       run: |
         . venv/bin/activate && pytest --cov=msresist --cov-report=xml --cov-config=.github/workflows/coveragerc
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v2
       with:
         file: ./coverage.xml
         flags: unittests
