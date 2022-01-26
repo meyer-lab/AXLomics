@@ -234,3 +234,11 @@ class MassSpecClustering(GaussianMixture):
         dictt["SeqWeight"] = self.SeqWeight
         dictt["distance_method"] = self.distance_method
         return dictt
+
+    def store_cluster_members(self, X, filename, col_labels):
+        """Save csv files with cluster members. col_labels indicates the columns to be included in the final file."""
+        X["Cluster"] = self.labels()
+        for i in range(self.n_components):
+            m = X[X["Cluster"] == i + 1][col_labels]
+            m.index = np.arange(m.shape[0])
+            m.to_csv("msresist/data/cluster_members/" + filename + str(i + 1) + ".csv")
