@@ -8,10 +8,9 @@ import seaborn as sns
 import matplotlib
 from sklearn.cross_decomposition import PLSRegression
 from sklearn.cluster import KMeans
-from .common import subplotLabel, getSetup, import_phenotype_data, formatPhenotypesForModeling
-from ..pre_processing import preprocessing, MeanCenter
+from .common import subplotLabel, getSetup, import_phenotype_data, formatPhenotypesForModeling, plotDistanceToUpstreamKinase
+from ..pre_processing import preprocessing
 from ..clustering import MassSpecClustering
-from ..motifs import KinToPhosphotypeDict
 from ..plsr import plotStripActualVsPred, plotScoresLoadings
 
 
@@ -29,11 +28,11 @@ def makeFigure():
 
     # Import siganling data
     X = preprocessing(AXLm_ErlAF154=True, Vfilter=True, FCfilter=True, log2T=True, mc_row=True)
-    d = X.select_dtypes(include=['float64']).T
-    i = X.select_dtypes(include=['object'])
+    d = X.select_dtypes(in_componentsude=['float64']).T
+    i = X.select_dtypes(in_componentsude=['object'])
 
     # Fit DDMC
-    ddmc = MassSpecClustering(i, ncl=5, SeqWeight=2, distance_method="PAM250", random_state=5).fit(d)
+    ddmc = MassSpecClustering(i, n_components=5, SeqWeight=2, distance_method="PAM250", random_state=5).fit(d)
     centers = ddmc.transform()
 
     # Import phenotypes
@@ -86,100 +85,22 @@ def plotCenters_together(ddmc, X, ax):
     sns.pointplot(x="Lines", y="p-signal", data=m, hue="Cluster", ax=ax, palette=palette, dashes=False, **{"linewidth": 0})
 
 
-def ComputeCenters(X, d, i, ddmc, ncl):
+def ComputeCenters(X, d, i, ddmc, n_components):
     """Calculate cluster centers of  different algorithms."""
     # k-means
-    labels = KMeans(n_clusters=ncl).fit(d.T).labels_
+    labels = KMeans(n_clusters=n_components).fit(d.T).labels_
     x_ = X.copy()
     x_["Cluster"] = labels
     c_kmeans = x_.groupby("Cluster").mean().T
 
     # GMM
-    ddmc_data = MassSpecClustering(i, ncl=ncl, SeqWeight=0, distance_method=ddmc.distance_method, random_state=ddmc.random_state).fit(d)
+    ddmc_data = MassSpecClustering(i, n_components=n_components, SeqWeight=0, distance_method=ddmc.distance_method, random_state=ddmc.random_state).fit(d)
     c_gmm = ddmc_data.transform()
 
     # DDMC seq
-    ddmc_seq = MassSpecClustering(i, ncl=ncl, SeqWeight=ddmc.SeqWeight + 20, distance_method=ddmc.distance_method, random_state=ddmc.random_state).fit(d)
+    ddmc_seq = MassSpecClustering(i, n_components=n_components, SeqWeight=ddmc.SeqWeight + 20, distance_method=ddmc.distance_method, random_state=ddmc.random_state).fit(d)
     ddmc_seq_c = ddmc_seq.transform()
 
     # DDMC mix
     ddmc_c = ddmc.transform()
-    return [c_kmeans, c_gmm, ddmc_seq_c, ddmc_c], ["Unclustered", "k-means", "GMM", "DDMC seq", "DDMC mix"]
-
-
-def plotDistanceToUpstreamKinase(model, clusters, ax, kind="strip", num_hits=5, additional_pssms=False, add_labels=False, title=False, PsP_background=True):
-    """Plot Frobenius norm between kinase PSPL and cluster PSSMs"""
-    ukin = model.predict_UpstreamKinases(additional_pssms=additional_pssms, add_labels=add_labels, PsP_background=PsP_background)
-    ukin_mc = MeanCenter(ukin, mc_col=True, mc_row=True)
-    cOG = np.array(clusters).copy()
-    if isinstance(add_labels, list):
-        clusters += add_labels
-    data = ukin_mc.sort_values(by="Kinase").set_index("Kinase")[clusters]
-    if kind == "heatmap":
-        sns.heatmap(data.T, ax=ax, xticklabels=data.index)
-        cbar = ax.collections[0].colorbar
-        cbar.ax.tick_params(labelsize=7)
-        ax.set_ylabel("Cluster")
-
-    elif kind == "strip":
-        data = pd.melt(data.reset_index(), id_vars="Kinase", value_vars=list(data.columns), var_name="Cluster", value_name="Frobenius Distance")
-        if isinstance(add_labels, list):
-            # Actual ERK predictions
-            data["Cluster"] = data["Cluster"].astype(str)
-            d1 = data[~data["Cluster"].str.contains("_S")]
-            sns.stripplot(data=d1, x="Cluster", y="Frobenius Distance", ax=ax[0])
-            print(cOG)
-            AnnotateUpstreamKinases(model, list(cOG) + ["ERK2+"], ax[0], d1, 1)
-
-            # Shuffled
-            d2 = data[data["Kinase"] == "ERK2"]
-            d2["Shuffled"] = ["_S" in s for s in d2["Cluster"]]
-            d2["Cluster"] = [s.split("_S")[0] for s in d2["Cluster"]]
-            sns.stripplot(data=d2, x="Cluster", y="Frobenius Distance", hue="Shuffled", ax=ax[1], size=8)
-            ax[1].set_title("ERK2 Shuffled Positions")
-            ax[1].legend(prop={'size': 10}, loc='lower left')
-            DrawArrows(ax[1], d2)
-
-        else:
-            sns.stripplot(data=data, x="Cluster", y="Frobenius Distance", ax=ax)
-            AnnotateUpstreamKinases(model, clusters, ax, data, num_hits)
-            if title:
-                ax.set_title(title)
-
-
-def AnnotateUpstreamKinases(model, clusters, ax, data, num_hits=1):
-    """Annotate upstream kinase predictions"""
-    data.iloc[:, 1] = data.iloc[:, 1].astype(str)
-    pssms, _ = model.pssms()
-    for ii, c in enumerate(clusters, start=1):
-        cluster = data[data.iloc[:, 1] == str(c)]
-        hits = cluster.sort_values(by="Frobenius Distance", ascending=True)
-        hits.index = np.arange(hits.shape[0])
-        hits["Phosphoacceptor"] = [KinToPhosphotypeDict[kin] for kin in hits["Kinase"]]
-        try:
-            cCP = pssms[c - 1].iloc[:, 5].idxmax()
-        except BaseException:
-            cCP == "S/T"
-        if cCP == "S" or cCP == "T":
-            cCP = "S/T"
-        hits = hits[hits["Phosphoacceptor"] == cCP]
-        for jj in range(num_hits):
-            ax.annotate(hits["Kinase"].iloc[jj], (ii - 1, hits["Frobenius Distance"].iloc[jj] - 0.01), fontsize=8)
-    ax.legend().remove()
-    ax.set_title("Kinase vs Cluster Motif")
-
-
-def DrawArrows(ax, d2):
-    data_shuff = d2[d2["Shuffled"]]
-    actual_erks = d2[d2["Shuffled"] == False]
-    arrow_lengths = np.add(data_shuff["Frobenius Distance"].values, abs(actual_erks["Frobenius Distance"].values)) * -1
-    for dp in range(data_shuff.shape[0]):
-        ax.arrow(dp,
-                 data_shuff["Frobenius Distance"].iloc[dp] - 0.1,
-                 0,
-                 arrow_lengths[dp] + 0.3,
-                 head_width=0.25,
-                 head_length=0.15,
-                 width=0.025,
-                 fc='black',
-                 ec='black')
+    return [c_kmeans, c_gmm, ddmc_seq_c, ddmc_c], ["Un_componentsustered", "k-means", "GMM", "DDMC seq", "DDMC mix"]
