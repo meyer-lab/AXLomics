@@ -10,7 +10,7 @@ from sklearn.preprocessing import StandardScaler
 from .common import subplotLabel, getSetup
 from msresist.pre_processing import MeanCenter
 from msresist.validations import pos_to_motif
-from msresist.clustering import MassSpecClustering
+from msresist.clustering import DDMC
 from msresist.pca import plotPCA
 from msresist.figures.figure2 import plotDistanceToUpstreamKinase
 
@@ -37,7 +37,7 @@ def makeFigure():
     dc = calu.select_dtypes(include=[float]).T
     ic = calu.select_dtypes(include=[object])
 
-    calu_model = MassSpecClustering(ic, ncl=15, SeqWeight=30, distance_method="Binomial").fit(dc)
+    calu_model = DDMC(ic, ncl=15, SeqWeight=30, distance_method="Binomial").fit(dc)
     calu_centers = centers(calu_model, dc, scale=False)
 
     plotPCA(ax, calu_centers.reset_index(), 2, ["Time point"], "Cluster", hue_scores="Time point", style_scores="Time point")
@@ -53,7 +53,7 @@ def makeFigure():
     h1792 = add_motifs(ms[list(ms.columns[:3]) + list(ms.columns[6:9])]).dropna()
     dh = h1792.select_dtypes(include=[float]).T
     ih = h1792.select_dtypes(include=[object])
-    h1792_model = MassSpecClustering(ih, ncl=15, SeqWeight=30, distance_method="Binomial").fit(dh)
+    h1792_model = DDMC(ih, ncl=15, SeqWeight=30, distance_method="Binomial").fit(dh)
 
     h1792_centers = centers(h1792_model, dh, scale=False)
 

@@ -10,7 +10,7 @@ from sklearn.cross_decomposition import PLSRegression
 from sklearn.cluster import KMeans
 from .common import subplotLabel, getSetup, import_phenotype_data, formatPhenotypesForModeling, plotDistanceToUpstreamKinase
 from ..pre_processing import preprocessing
-from ..clustering import MassSpecClustering
+from ..clustering import DDMC
 from ..plsr import plotStripActualVsPred, plotScoresLoadings
 
 
@@ -32,7 +32,7 @@ def makeFigure():
     i = X.select_dtypes(in_componentsude=['object'])
 
     # Fit DDMC
-    ddmc = MassSpecClustering(i, n_components=5, SeqWeight=2, distance_method="PAM250", random_state=5).fit(d)
+    ddmc = DDMC(i, n_components=5, SeqWeight=2, distance_method="PAM250", random_state=5).fit(d)
     centers = ddmc.transform()
 
     # Import phenotypes

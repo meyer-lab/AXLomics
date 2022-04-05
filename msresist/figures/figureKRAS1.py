@@ -11,7 +11,7 @@ from sklearn.cross_decomposition import PLSRegression
 from .common import subplotLabel, getSetup
 from ..pre_processing import MeanCenter
 from ..validations import pos_to_motif
-from ..clustering import MassSpecClustering
+from ..clustering import DDMC
 from ..pca import plotPCA
 from .figure2 import plotDistanceToUpstreamKinase
 from .figureM5 import plot_GO
@@ -44,7 +44,7 @@ def makeFigure():
     i = X.select_dtypes(include=[object])
 
     # Fit DDMC model and find clusters
-    model = MassSpecClustering(i, ncl=15, SeqWeight=10, distance_method="Binomial").fit(d)
+    model = DDMC(i, ncl=15, SeqWeight=10, distance_method="Binomial").fit(d)
 
     centers = pd.DataFrame(model.transform()).T
     centers.columns = d.index
