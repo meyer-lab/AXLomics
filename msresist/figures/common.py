@@ -16,9 +16,8 @@ from ..distances import DataFrameRipleysK
 from ..motifs import MapMotifs
 
 
-mutants = ['PC9', 'KO', 'KIN', 'KD', 'M4', 'M5', 'M7', 'M10', 'M11', 'M15']
-all_lines = ["WT", "KO", "KI", "KD", "Y634F", "Y643F", "Y698F", "Y726F", "Y750F", "Y821F"]
-lines = ["WT", "KO", "KI", "KD", "634", "643", "698", "726", "750", "821"]
+mutants = ['PC9', 'KIN', 'KO', 'KD', 'M4', 'M5', 'M7', 'M10', 'M11', 'M15']
+all_lines = ["WT", "KI", "KO", "KD", "Y634F", "Y643F", "Y698F", "Y726F", "Y750F", "Y821F"]
 itp = 24
 
 def getSetup(figsize, gridd, multz=None, empts=None):
@@ -74,19 +73,19 @@ def overlayCartoon(figFile, cartoonFile, x, y, scalee=1, scale_x=1, scale_y=1, r
 def formatPhenotypesForModeling(cv, red, sw, c):
     """Format and merge phenotye data sets for modeling"""
     # Cell Viability
-    v_ut = y_pre(cv, "UT", 96, "Viability", all_lines, itp=itp)
-    v_e = y_pre(cv, "-E", 96, "Viability", all_lines, itp=itp)
-    v_ae = y_pre(cv, "A/E", 96, "Viability", all_lines, itp=itp)
+    v_ut = y_pre(cv, "UT", 96, "Viability", itp=itp)
+    v_e = y_pre(cv, "-E", 96, "Viability", itp=itp)
+    v_ae = y_pre(cv, "A/E", 96, "Viability", itp=itp)
 
     # Cell Death
-    cd_ut = y_pre(red, "UT", 96, "Apoptosis", all_lines, itp=itp)
-    cd_e = y_pre(red, "-E", 96, "Apoptosis", all_lines, itp=itp)
-    cd_ae = y_pre(red, "A/E", 96, "Apoptosis", all_lines, itp=itp)
+    cd_ut = y_pre(red, "UT", 96, "Apoptosis", itp=itp)
+    cd_e = y_pre(red, "-E", 96, "Apoptosis", itp=itp)
+    cd_ae = y_pre(red, "A/E", 96, "Apoptosis", itp=itp)
 
     # Migration
-    m_ut = y_pre(sw, "UT", 10, "Migration", all_lines)
-    m_e = y_pre(sw, "-E", 10, "Migration", all_lines)
-    m_ae = y_pre(sw, "A/E", 10, "Migration", all_lines)
+    m_ut = y_pre(sw, "UT", 10, "Migration")
+    m_e = y_pre(sw, "-E", 10, "Migration")
+    m_ae = y_pre(sw, "A/E", 10, "Migration")
     m_ut.index = v_ut.index
     m_e.index = v_e.index
     m_ae.index = v_ae.index
@@ -109,7 +108,7 @@ def formatPhenotypesForModeling(cv, red, sw, c):
 def format_islands_byTreatments(island_data, treatment):
     """Find and format subset of data corresponding to each treatment"""
     X = island_data[island_data["Treatment"] == treatment]
-    X = X.reindex(list(mutants[:2]) + [mutants[3]] + [mutants[2]] + list(mutants[4:]))
+    X = X.reindex(mutants)
     X.index = all_lines
     X = X.reset_index()
     X["Treatment"] = treatment

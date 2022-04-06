@@ -6,9 +6,8 @@ import os
 import pandas as pd
 import matplotlib
 import seaborn as sns
-from .common import subplotLabel, getSetup, IndividualTimeCourses, import_phenotype_data, formatPhenotypesForModeling
+from .common import subplotLabel, getSetup, import_phenotype_data, formatPhenotypesForModeling
 from ..pca import plotPCA
-from ..distances import PlotRipleysK
 
 sns.set(color_codes=True)
 
