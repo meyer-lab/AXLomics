@@ -21,11 +21,11 @@ def pca_dfs(scores, loadings, df, n_components, sIDX, lIDX):
 
     for j in sIDX:
         dScor[j] = list(df[j])
-    dLoad[lIDX] = df.select_dtypes(include=["float64"]).columns
+    dLoad.index = df.select_dtypes(include=["float64"]).columns
     return dScor, dLoad
 
 
-def plotPCA(ax, d, n_components, scores_ind, loadings_ind, hue_scores=None, style_scores=None, pvals=None, style_load=None, legendOut=False, quadrants=True):
+def plotPCA(ax, d, n_components, scores_ind, loadings_ind, hue_scores=None, style_scores=None, size_dots=100, pvals=None, style_load=None, legendOut=False, quadrants=True):
     """ Plot PCA scores and loadings. """
     pp = PCA(n_components=n_components)
     dScor_ = pp.fit_transform(d.select_dtypes(include=["float64"]))
@@ -34,7 +34,7 @@ def plotPCA(ax, d, n_components, scores_ind, loadings_ind, hue_scores=None, styl
     varExp = np.round(pp.explained_variance_ratio_, 2)
 
     # Scores
-    sns.scatterplot(x="PC1", y="PC2", data=dScor_, hue=hue_scores, style=style_scores, ax=ax[0], **{"linewidth": 0.5, "edgecolor": "k"})
+    sns.scatterplot(x="PC1", y="PC2", data=dScor_, hue=hue_scores, style=style_scores, ax=ax[0], **{"linewidth": 0.5, "edgecolor": "k"}, s=size_dots)
     ax[0].set_title("PCA Scores")
     ax[0].set_xlabel("PC1 (" + str(int(varExp[0] * 100)) + "%)", fontsize=10)
     ax[0].set_ylabel("PC2 (" + str(int(varExp[1] * 100)) + "%)", fontsize=10)
@@ -45,15 +45,15 @@ def plotPCA(ax, d, n_components, scores_ind, loadings_ind, hue_scores=None, styl
     # Loadings
     if isinstance(pvals, np.ndarray):
         dLoad_["p-value"] = pvals
-        sns.scatterplot(x="PC1", y="PC2", data=dLoad_, hue="p-value", style=style_load, ax=ax[1], **{"linewidth": 0.5, "edgecolor": "k"})
+        sns.scatterplot(x="PC1", y="PC2", data=dLoad_, hue="p-value", style=style_load, ax=ax[1], **{"linewidth": 0.5, "edgecolor": "k"}, s=100)
     else:
-        sns.scatterplot(x="PC1", y="PC2", data=dLoad_, style=style_load, ax=ax[1], **{"linewidth": 0.5, "edgecolor": "k"})
+        sns.scatterplot(x="PC1", y="PC2", data=dLoad_, style=style_load, ax=ax[1], **{"linewidth": 0.5, "edgecolor": "k"}, s=100)
 
     ax[1].set_title("PCA Loadings")
     ax[1].set_xlabel("PC1 (" + str(int(varExp[0] * 100)) + "%)", fontsize=10)
     ax[1].set_ylabel("PC2 (" + str(int(varExp[1] * 100)) + "%)", fontsize=10)
     ax[1].legend(prop={'size': 8})
-    for j, txt in enumerate(dLoad_[loadings_ind]):
+    for j, txt in enumerate(dLoad_.index):
         ax[1].annotate(txt, (dLoad_["PC1"][j] + 0.001, dLoad_["PC2"][j] + 0.001), fontsize=10)
 
     if quadrants:
@@ -63,7 +63,7 @@ def plotPCA(ax, d, n_components, scores_ind, loadings_ind, hue_scores=None, styl
         ax[1].axvline(0, ls='--', color='lightgrey')
 
 
-def plotPCA_scoresORloadings(ax, d, n_components, scores_ind, loadings_ind, hue_scores=None, style_scores=None, pvals=None, style_load=None, legendOut=False, plot="scores", annotateScores=False):
+def plotPCA_scoresORloadings(ax, d, n_components, scores_ind, loadings_ind, hue_scores=None, style_scores=None, pvals=None, style_load=None, legendOut=False, plot="scores", annotateScores=False, size_dots=100):
     """Plot PCA scores only"""
     pp = PCA(n_components=n_components)
     dScor_ = pp.fit_transform(d.select_dtypes(include=["float64"]).values)
@@ -73,7 +73,7 @@ def plotPCA_scoresORloadings(ax, d, n_components, scores_ind, loadings_ind, hue_
 
     # Scores
     if plot == "scores":
-        sns.scatterplot(x="PC1", y="PC2", data=dScor_, hue=hue_scores, style=style_scores, ax=ax, **{"linewidth": 0.5, "edgecolor": "k"})
+        sns.scatterplot(x="PC1", y="PC2", data=dScor_, hue=hue_scores, style=style_scores, ax=ax, **{"linewidth": 0.5, "edgecolor": "k"}, s=size_dots)
         ax.set_title("PCA Scores")
         ax.set_xlabel("PC1 (" + str(int(varExp[0] * 100)) + "%)", fontsize=10)
         ax.set_ylabel("PC2 (" + str(int(varExp[1] * 100)) + "%)", fontsize=10)
