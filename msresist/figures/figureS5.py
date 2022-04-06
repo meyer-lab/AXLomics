@@ -7,7 +7,7 @@ import pandas as pd
 import matplotlib
 import seaborn as sns
 from .common import subplotLabel, getSetup
-from ..clustering import MassSpecClustering
+from ..clustering import DDMC
 from ..pre_processing import preprocessing
 import logomaker as lm
 
@@ -28,7 +28,7 @@ def makeFigure():
     X = preprocessing(AXLwt_GF=True, Vfilter=True, FCfilter=True, log2T=True, mc_row=True)
     data = X.select_dtypes(include=['float64']).T
     info = X.select_dtypes(include=['object'])
-    model = MassSpecClustering(info, 5, SeqWeight=2, distance_method="PAM250").fit(X=data)
+    model = DDMC(info, 5, SeqWeight=2, distance_method="PAM250").fit(X=data)
     lines = ["WT", "KO", "KD", "KI", "Y634F", "Y643F", "Y698F", "Y726F", "Y750F ", "Y821F"]
 
     # Centers
