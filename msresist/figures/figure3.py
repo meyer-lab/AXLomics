@@ -6,8 +6,7 @@ import pandas as pd
 import numpy as np
 import matplotlib
 import seaborn as sns
-from .common import subplotLabel, getSetup
-from .figure1 import TimePointFoldChange, plot_IdSites
+from .common import subplotLabel, getSetup, TimePointFoldChange, plot_IdSites
 from msresist.pre_processing import preprocessing
 
 
@@ -139,7 +138,7 @@ def plot_InhDR_timepoint(ax, inhibitor, itp=24):
         units = "nM"
         time = 96
     elif inhibitor == "CX-4945":
-        inh = [merge_TRs("CX_4945_BR1_dose.csv", 2), merge_TRs("CX_4945_BR2_dose.csv", 2)]
+        inh = [merge_TRs("CX_4945_BR1_dose.csv", 2), merge_TRs("02032022-CX_4945_BR3_dose.csv", 2)]
         units = "uM"
         time = 96
     elif inhibitor == "Volasertib":

@@ -3,7 +3,6 @@
 import scipy as sp
 import numpy as np
 import pandas as pd
-impport pandas as pd
 import seaborn as sns
 import matplotlib.colors as colors
 import matplotlib.cm as cm
