@@ -16,8 +16,8 @@ from ..distances import DataFrameRipleysK
 from ..motifs import MapMotifs
 
 
-mutants = ['PC9', 'KIN', 'KO', 'KD', 'M4', 'M5', 'M7', 'M10', 'M11', 'M15']
-all_lines = ["WT", "KI", "KO", "KD", "Y634F", "Y643F", "Y698F", "Y726F", "Y750F", "Y821F"]
+mutants = ['PC9', 'KO', 'KIN', 'KD', 'M4', 'M5', 'M7', 'M10', 'M11', 'M15']
+all_lines = ["WT", "KO", "KI", "KD", "Y634F", "Y643F", "Y698F", "Y726F", "Y750F", "Y821F"]
 itp = 24
 
 def getSetup(figsize, gridd, multz=None, empts=None):
@@ -108,7 +108,7 @@ def formatPhenotypesForModeling(cv, red, sw, c):
 def format_islands_byTreatments(island_data, treatment):
     """Find and format subset of data corresponding to each treatment"""
     X = island_data[island_data["Treatment"] == treatment]
-    X = X.reindex(mutants)
+    X = X.reindex(list(mutants[:2]) + [mutants[3]] + [mutants[2]] + list(mutants[4:]))
     X.index = all_lines
     X = X.reset_index()
     X["Treatment"] = treatment

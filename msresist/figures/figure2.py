@@ -57,7 +57,7 @@ def makeFigure():
     plotCenters_together(ddmc, X, ax[3])
 
     # Predictions
-    Xs, models = ComputeCenters(X, d, i, ddmc, 5)
+    Xs, models = ComputeCenters(X, d, i, ddmc)
     Xs.append(centers)
     models.append("DDMC mix")
     plotStripActualVsPred(ax[4], [3, 4, 2, 3, 4], Xs, y, models)
@@ -85,22 +85,22 @@ def plotCenters_together(ddmc, X, ax):
     sns.pointplot(x="Lines", y="p-signal", data=m, hue="Cluster", ax=ax, palette=palette, dashes=False, **{"linewidth": 0})
 
 
-def ComputeCenters(X, d, i, ddmc, n_components):
+def ComputeCenters(X, d, i, ddmc):
     """Calculate cluster centers of  different algorithms."""
     # k-means
-    labels = KMeans(n_clusters=n_components).fit(d.T).labels_
+    labels = KMeans(n_clusters=ddmc.n_components).fit(d.T).labels_
     x_ = X.copy()
     x_["Cluster"] = labels
     c_kmeans = x_.groupby("Cluster").mean().T
 
     # GMM
-    ddmc_data = DDMC(i, n_components=n_components, SeqWeight=0, distance_method=ddmc.distance_method, random_state=ddmc.random_state).fit(d)
+    ddmc_data = DDMC(i, n_components=ddmc.n_components, SeqWeight=0, distance_method=ddmc.distance_method, random_state=ddmc.random_state).fit(d)
     c_gmm = ddmc_data.transform()
 
     # DDMC seq
-    ddmc_seq = DDMC(i, n_components=n_components, SeqWeight=ddmc.SeqWeight + 20, distance_method=ddmc.distance_method, random_state=ddmc.random_state).fit(d)
+    ddmc_seq = DDMC(i, n_components=ddmc.n_components, SeqWeight=ddmc.SeqWeight + 150, distance_method=ddmc.distance_method, random_state=ddmc.random_state).fit(d)
     ddmc_seq_c = ddmc_seq.transform()
 
     # DDMC mix
-    ddmc_c = ddmc.transform()
-    return [c_kmeans, c_gmm, ddmc_seq_c, ddmc_c], ["Unclustered", "k-means", "GMM", "DDMC seq", "DDMC mix"]
+    ddmc_c = ddmc.fit(d).transform()
+    return [d, c_kmeans, c_gmm, ddmc_seq_c, ddmc_c], ["Unclustered", "k-means", "GMM", "DDMC seq", "DDMC mix"]
