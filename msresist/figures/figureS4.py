@@ -5,7 +5,7 @@ This creates Supplemental Figure 4: Specific phosphosites.
 import matplotlib
 import pandas as pd
 import seaborn as sns
-import numpy as np 
+import numpy as np
 from scipy.stats import f_oneway
 from statsmodels.stats.multitest import multipletests
 from bioinfokit import visuz
@@ -14,6 +14,7 @@ from ..pre_processing import preprocessing
 
 
 lines = ["WT", "KO", "KD", "KI", "634", "643", "698", "726", "750", "821"]
+
 
 def makeFigure():
     """Get a list of the axis objects and create a figure"""
@@ -32,30 +33,29 @@ def makeFigure():
 
     # RTKs
     kinase_heatmap(X, [("EGFR", "Y1197-p"),
-            ("EGFR", "Y1172-p"),
-            ("EPHA2", "T771-p"),
-            ("EPHA2", "Y772-p"),
-            ("ERBB2", "Y877-p"),
-            ("ERBB2", "Y1248-p"),
-            ("ERBB3", "Y1328-p"),
-            ("MET", "S988-p")], ax=ax[0], FC=False)
+                       ("EGFR", "Y1172-p"),
+                       ("EPHA2", "T771-p"),
+                       ("EPHA2", "Y772-p"),
+                       ("ERBB2", "Y877-p"),
+                       ("ERBB2", "Y1248-p"),
+                       ("ERBB3", "Y1328-p"),
+                       ("MET", "S988-p")], ax=ax[0], FC=False)
     ax[0].set_title("Receptor Tyrosine Kinases")
 
     # Adapters
     kinase_heatmap(X, [("GRB2", "Y160-p"),
-            ("SOS1", "Y1196-p"),
-            ("DAPP1", "Y139-p"),
-            ("SHB", "Y268-p"),
-            ("SHC1", "S426-p"),
-            ("CRK", "Y251-p"),
-            ("EPS8", "Y485-p")], ax=ax[1], FC=False)
+                       ("SOS1", "Y1196-p"),
+                       ("DAPP1", "Y139-p"),
+                       ("SHB", "Y268-p"),
+                       ("SHC1", "S426-p"),
+                       ("CRK", "Y251-p"),
+                       ("EPS8", "Y485-p")], ax=ax[1], FC=False)
     ax[1].set_title("RTK adapters")
 
     # Kinases
     ax[2].axis("off")
 
     return f
-
 
 
 def kinase_heatmap(X, prot_dict, ax, FC=False):
@@ -94,4 +94,20 @@ def AXL_volcanoplot(X):
     pv["logFC"] = fc
     pv["p-values"] = pvals
     pv = pv.sort_values(by="p-values")
-    visuz.GeneExpression.volcano(df=pv, lfc='logFC', pv='p-values', show=True, geneid="Peptide", lfc_thr=(0.5, 0.5), genenames="deg", color=("#00239CFF", "grey", "#E10600FF"), figtype="svg",  gstyle=2, axtickfontname='Arial')
+    visuz.GeneExpression.volcano(
+        df=pv,
+        lfc='logFC',
+        pv='p-values',
+        show=True,
+        geneid="Peptide",
+        lfc_thr=(
+            0.5,
+            0.5),
+        genenames="deg",
+        color=(
+            "#00239CFF",
+            "grey",
+            "#E10600FF"),
+        figtype="svg",
+        gstyle=2,
+        axtickfontname='Arial')

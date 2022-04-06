@@ -16,6 +16,7 @@ sns.set(color_codes=True)
 path = os.path.dirname(os.path.abspath(__file__))
 pd.set_option("display.max_columns", 30)
 
+
 def makeFigure():
     """Get a list of the axis objects and create a figure"""
     # Get list of axis objects
