@@ -2,7 +2,6 @@
 All functions relaed to GSEA analysis of clusters
 """
 
-import pickle
 import pandas as pd
 import mygene
 from msresist.pre_processing import preprocessing, filter_NaNpeptides
