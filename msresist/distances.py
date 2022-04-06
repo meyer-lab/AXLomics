@@ -272,7 +272,7 @@ def BarPlotRipleysK_TimePlots(folder, mutant, extensions, treatments, r, ax):
     ax.legend(loc=4, frameon=False)
 
 
-def DataFrameRipleysK(folder, mutants, treatments, replicates, r):
+def DataFrameRipleysK(folder, mutants, treatments, replicates, r, merge=True):
     """Returns a DataFrame of the Ripleys K data along with poisson information"""
     Kest = RipleysKEstimator(area=158.8761, x_max=14.67, y_max=10.83, x_min=0, y_min=0)
     poisson = Kest.poisson(r)
@@ -288,7 +288,9 @@ def DataFrameRipleysK(folder, mutants, treatments, replicates, r):
             # add_poisson(poisson, mutant, df)
             mutant_dfs.append(df)
     df = pd.concat(mutant_dfs)
-    return df.groupby(["Mutant", "Treatment"]).mean()
+    if merge:
+        df = df.groupby(["Mutant", "Treatment"]).mean()
+    return df
 
 
 def PlotRipleysK_TimeCourse(folder, extensions, timepoint, ax):

@@ -150,10 +150,10 @@ def MeanCenter(X, mc_row, mc_col):
     return X
 
 
-def VarianceFilter(X, data_headers, varCut=0.1):
-    """ Filter rows for those containing more than cutoff variance. Variance across conditions per peptide.
+def VarianceFilter(X, data_headers, axis=1, varCut=0.1):
+    """ Filter rows/columns for those containing more than cutoff variance. Variance across conditions per peptide.
     Note this should only be used with log-scaled, mean-centered data. """
-    Xidx = np.var(X[data_headers].values, axis=1) > varCut
+    Xidx = np.var(X[data_headers].values, axis=axis) > varCut
     return X.iloc[Xidx, :]
 
 

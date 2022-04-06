@@ -10,7 +10,8 @@ import pandas as pd
 import seaborn as sns
 import svgutils.transform as st
 from sklearn.preprocessing import StandardScaler
-from ..pre_processing import FixColumnLabels, MapOverlappingPeptides, BuildMatrix, TripsMeanAndStd, CorrCoefFilter, y_pre
+from ..motifs import KinToPhosphotypeDict
+from ..pre_processing import FixColumnLabels, MapOverlappingPeptides, BuildMatrix, TripsMeanAndStd, CorrCoefFilter, y_pre, MeanCenter
 from ..distances import DataFrameRipleysK
 from ..motifs import MapMotifs
 
@@ -171,7 +172,7 @@ def IndividualTimeCourses(
         fig.savefig("TimeCourse.pdf", bbox_inches="tight")
 
 
-def import_phenotype_data(phenotype="Cell Viability"):
+def import_phenotype_data(phenotype="Cell Viability", merge=True):
     """Import all bioreplicates of a specific phenotype"""
     if phenotype == "Cell Viability":
         cv1 = pd.read_csv("msresist/data/Phenotypic_data/AXLmutants/CellViability/Phase/BR1_Phase.csv")
@@ -444,3 +445,81 @@ def barplot_UtErlAF154(ax, lines, ds, ftp, t1, t2, ylabel, title, colors, TimePo
     ax.set_title(title)
     ax.set_xticklabels(lines, rotation=90)
     ax.legend(prop={'size': 8}, loc=loc)
+
+
+def plotDistanceToUpstreamKinase(model, clusters, ax, kind="strip", num_hits=5, additional_pssms=False, add_labels=False, title=False, PsP_background=True):
+    """Plot Frobenius norm between kinase PSPL and cluster PSSMs"""
+    ukin = model.predict_UpstreamKinases(additional_pssms=additional_pssms, add_labels=add_labels, PsP_background=PsP_background)
+    ukin_mc = MeanCenter(ukin, mc_col=True, mc_row=True)
+    cOG = np.array(clusters).copy()
+    if isinstance(add_labels, list):
+        clusters += add_labels
+    data = ukin_mc.sort_values(by="Kinase").set_index("Kinase")[clusters]
+    if kind == "heatmap":
+        sns.heatmap(data.T, ax=ax, xticklabels=data.index)
+        cbar = ax.collections[0].colorbar
+        cbar.ax.tick_params(labelsize=7)
+        ax.set_ylabel("Cluster")
+
+    elif kind == "strip":
+        data = pd.melt(data.reset_index(), id_vars="Kinase", value_vars=list(data.columns), var_name="Cluster", value_name="Frobenius Distance")
+        if isinstance(add_labels, list):
+            # Actual ERK predictions
+            data["Cluster"] = data["Cluster"].astype(str)
+            d1 = data[~data["Cluster"].str.contains("_S")]
+            sns.stripplot(data=d1, x="Cluster", y="Frobenius Distance", ax=ax[0])
+            print(cOG)
+            AnnotateUpstreamKinases(model, list(cOG) + ["ERK2+"], ax[0], d1, 1)
+
+            # Shuffled
+            d2 = data[data["Kinase"] == "ERK2"]
+            d2["Shuffled"] = ["_S" in s for s in d2["Cluster"]]
+            d2["Cluster"] = [s.split("_S")[0] for s in d2["Cluster"]]
+            sns.stripplot(data=d2, x="Cluster", y="Frobenius Distance", hue="Shuffled", ax=ax[1], size=8)
+            ax[1].set_title("ERK2 Shuffled Positions")
+            ax[1].legend(prop={'size': 10}, loc='lower left')
+            DrawArrows(ax[1], d2)
+
+        else:
+            sns.stripplot(data=data, x="Cluster", y="Frobenius Distance", ax=ax)
+            AnnotateUpstreamKinases(model, clusters, ax, data, num_hits)
+            if title:
+                ax.set_title(title)
+
+
+def AnnotateUpstreamKinases(model, clusters, ax, data, num_hits=1):
+    """Annotate upstream kinase predictions"""
+    data.iloc[:, 1] = data.iloc[:, 1].astype(str)
+    pssms, _ = model.pssms()
+    for ii, c in enumerate(clusters, start=1):
+        cluster = data[data.iloc[:, 1] == str(c)]
+        hits = cluster.sort_values(by="Frobenius Distance", ascending=True)
+        hits.index = np.arange(hits.shape[0])
+        hits["Phosphoacceptor"] = [KinToPhosphotypeDict[kin] for kin in hits["Kinase"]]
+        try:
+            cCP = pssms[c - 1].iloc[:, 5].idxmax()
+        except BaseException:
+            cCP == "S/T"
+        if cCP == "S" or cCP == "T":
+            cCP = "S/T"
+        hits = hits[hits["Phosphoacceptor"] == cCP]
+        for jj in range(num_hits):
+            ax.annotate(hits["Kinase"].iloc[jj], (ii - 1, hits["Frobenius Distance"].iloc[jj] - 0.01), fontsize=8)
+    ax.legend().remove()
+    ax.set_title("Kinase vs Cluster Motif")
+
+
+def DrawArrows(ax, d2):
+    data_shuff = d2[d2["Shuffled"]]
+    actual_erks = d2[d2["Shuffled"] == False]
+    arrow_lengths = np.add(data_shuff["Frobenius Distance"].values, abs(actual_erks["Frobenius Distance"].values)) * -1
+    for dp in range(data_shuff.shape[0]):
+        ax.arrow(dp,
+                 data_shuff["Frobenius Distance"].iloc[dp] - 0.1,
+                 0,
+                 arrow_lengths[dp] + 0.3,
+                 head_width=0.25,
+                 head_length=0.15,
+                 width=0.025,
+                 fc='black',
+                 ec='black')
