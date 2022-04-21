@@ -73,16 +73,18 @@ def makeFigure():
     return f
 
 
-def plotCenters_together(ddmc, X, ax):
+def plotCenters_together(ddmc, X, ax, drop=None):
     """Plot Cluster Centers together in same plot"""
     centers = pd.DataFrame(ddmc.transform()).T
     centers.columns = X.columns[7:]
     centers["Cluster"] = list(np.arange(ddmc.n_components) + 1)
+    if drop:
+        centers = centers.set_index("Cluster").drop(drop, axis=0).reset_index()
     m = pd.melt(centers, id_vars=["Cluster"], value_vars=list(centers.columns), value_name="p-signal", var_name="Lines")
     m["p-signal"] = m["p-signal"].astype("float64")
     sns.set_context("paper", rc={'lines.linewidth': 1}) 
     palette ={1: "C0", 2: "C1", 3: "C2", 4: "C3", 5: "k"}
-    sns.pointplot(x="Lines", y="p-signal", data=m, hue="Cluster", ax=ax, palette=palette, dashes=False, **{"linewidth": 0})
+    sns.barplot(x="Lines", y="p-signal", data=m, hue="Cluster", ax=ax, palette=palette, **{"linewidth": 0})
 
 
 def ComputeCenters(X, d, i, ddmc):
