@@ -242,3 +242,12 @@ class DDMC(GaussianMixture):
             m = X[X["Cluster"] == i + 1][col_labels]
             m.index = np.arange(m.shape[0])
             m.to_csv("msresist/data/cluster_members/" + filename + str(i + 1) + ".csv")
+
+    def scores_per_cluster(self, type="Total"):
+        if type == "Total":
+            print(pd.DataFrame(self.scores_).mean())
+
+        else:
+            for ii in range(self.n_components):
+                cl_idx = [i for i in range(len(self.labels())) if self.labels()[i] == ii + 1]
+                print(np.mean(self.scores_[cl_idx, ii]))
