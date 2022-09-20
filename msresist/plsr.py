@@ -95,7 +95,7 @@ def add_rBox(ypred, y, ax):
     ax.text(0.75, 0.10, textstr, transform=ax.transAxes, verticalalignment="top", bbox=props)
 
 
-def plotStripActualVsPred(ax, n_components, Xs, Y, models):
+def plotStripActualVsPred(ax, n_components, Xs, Y, models, size=10):
     """Actual vs Predicted of different PLSR models"""
     datas = []
     for ii, X in enumerate(Xs):
@@ -107,7 +107,7 @@ def plotStripActualVsPred(ax, n_components, Xs, Y, models):
         data["Model"] = models[ii]
         datas.append(data)
     res = pd.concat(datas)
-    sns.stripplot(x="Phenotype", y="r-score", data=res, ax=ax, hue="Model")
+    sns.stripplot(x="Phenotype", y="r-score", data=res, ax=ax, hue="Model", size=size)
     ax.set_title("Actual vs Predicted")
     ax.legend(prop={'size': 8})
 

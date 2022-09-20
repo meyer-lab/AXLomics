@@ -320,7 +320,7 @@ def MergeTR(data):
     return data.drop(data.columns[[i + 1 for i in range(1, data.shape[1], 2)]], axis="columns")
 
 
-def y_pre(ds, tr, ftp, phenotype, all_lines, itp=False):
+def y_pre(ds, tr, ftp, phenotype, itp=False):
     """ Preprocesses cell phenotype data sets for analysis. """
     z = []
     for sl in ds:
@@ -343,7 +343,7 @@ def y_pre(ds, tr, ftp, phenotype, all_lines, itp=False):
     if "-" in y["Lines"][1]:
         y["Lines"] = [s.split("-")[0] for s in y.iloc[:, 0]]
 
-    y["Lines"] = all_lines
+    y["Lines"] = ["WT", "KO", "KD", "KI", "Y634F", "Y643F", "Y698F", "Y726F", "Y750F", "Y821F"]
     return y[["Lines", "Treatment", phenotype]]
 
 

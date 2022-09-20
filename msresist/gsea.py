@@ -2,9 +2,9 @@
 All functions relaed to GSEA analysis of clusters
 """
 
-import pandas as pd
+import numpy as np 
 import mygene
-from msresist.pre_processing import preprocessing, filter_NaNpeptides
+from msresist.pre_processing import Linear
 
 
 path = "/Users/creixell/Desktop/"
@@ -23,3 +23,11 @@ def translate_geneIDs(X, labels, toID="entrezgene", export=False, outpath="GSEA_
     if export:
         X[["Gene", "Clusters"]].to_csv(outpath)
     return X[["Gene", "Clusters"]]
+
+
+def cytoscape_input(ddmc, X):
+    """Store cluster members wih specific formatting to analyze in cytoscape."""
+    xL = Linear(X, X.columns[7:])
+    xL.insert(7, "WTvsKO", np.log2((xL["PC9 A"] / xL["KO A"]).values))
+    xL["Position"] = [s.replace("-p", "").replace(";", "/") for s in xL["Position"]]
+    ddmc.store_cluster_members(xL, "DDMC_PAM250_5Cl_W2_RS5_C", ["UniprotAcc", "Gene", "Sequence", "Position", "WTvsKO"])
