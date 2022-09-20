@@ -244,6 +244,7 @@ class DDMC(GaussianMixture):
             m.to_csv("msresist/data/cluster_members/" + filename + str(i + 1) + ".csv")
 
     def scores_per_cluster(self, type="Total"):
+        """Find scores per cluster, either considering all including partial assignments, or only those for which"""
         if type == "Total":
             print(pd.DataFrame(self.scores_).mean())
 
