@@ -10,7 +10,7 @@ from sklearn.utils import resample
 from sklearn.metrics import r2_score
 
 
-def pca_dfs(scores, loadings, df, n_components, sIDX, lIDX):
+def pca_dfs(scores, loadings, df, n_components, sIDX):
     """ build PCA scores and loadings data frames. """
     dScor = pd.DataFrame()
     dLoad = pd.DataFrame()
@@ -25,12 +25,12 @@ def pca_dfs(scores, loadings, df, n_components, sIDX, lIDX):
     return dScor, dLoad
 
 
-def plotPCA(ax, d, n_components, scores_ind, loadings_ind, hue_scores=None, style_scores=None, size_dots=100, pvals=None, style_load=None, legendOut=False, quadrants=True):
+def plotPCA(ax, d, n_components, scores_ind, hue_scores=None, style_scores=None, size_dots=100, pvals=None, style_load=None, legendOut=False, quadrants=True):
     """ Plot PCA scores and loadings. """
     pp = PCA(n_components=n_components)
     dScor_ = pp.fit_transform(d.select_dtypes(include=["float64"]))
     dLoad_ = pp.components_
-    dScor_, dLoad_ = pca_dfs(dScor_, dLoad_, d, n_components, scores_ind, loadings_ind)
+    dScor_, dLoad_ = pca_dfs(dScor_, dLoad_, d, n_components, scores_ind)
     varExp = np.round(pp.explained_variance_ratio_, 2)
 
     # Scores
