@@ -8,8 +8,11 @@ from matplotlib import gridspec, pyplot as plt
 import matplotlib.cm as cm
 import pandas as pd
 import seaborn as sns
+import logomaker as lm
 import svgutils.transform as st
 from sklearn.preprocessing import StandardScaler
+from scipy.stats import mannwhitneyu
+from statsmodels.stats.multitest import multipletests
 from ..motifs import KinToPhosphotypeDict
 from ..pre_processing import FixColumnLabels, MapOverlappingPeptides, BuildMatrix, TripsMeanAndStd, CorrCoefFilter, y_pre, MeanCenter
 from ..distances import DataFrameRipleysK
@@ -18,7 +21,6 @@ from ..motifs import MapMotifs
 
 mutants = ['PC9', 'KO', 'KIN', 'KD', 'M4', 'M5', 'M7', 'M10', 'M11', 'M15']
 all_lines = ["WT", "KO", "KI", "KD", "Y634F", "Y643F", "Y698F", "Y726F", "Y750F", "Y821F"]
-lines = ["WT", "KO", "KI", "KD", "634", "643", "698", "726", "750", "821"]
 itp = 24
 
 def getSetup(figsize, gridd, multz=None, empts=None):
@@ -71,22 +73,69 @@ def overlayCartoon(figFile, cartoonFile, x, y, scalee=1, scale_x=1, scale_y=1, r
     template.save(figFile)
 
 
+def plot_clusters_binaryfeatures(centers, id_var, ax, pvals=False, loc='best'):
+    """Plot p-signal of binary features (tumor vs NAT or mutational status) per cluster """
+    data = pd.melt(id_vars=id_var, value_vars=centers.columns[:-1], value_name="p-signal", var_name="Cluster", frame=centers)
+    sns.violinplot(x="Cluster", y="p-signal", hue=id_var, data=data, dodge=True, ax=ax, linewidth=0.25, fliersize=2)
+    ax.legend(prop={'size': 8}, loc=loc)
+
+    if not isinstance(pvals, bool):
+        for ii, s in enumerate(pvals["Significant"]):
+            y, h, col = data['p-signal'].max(), .05, 'k'
+            if s == "NS":
+                continue
+            elif s == "<0.05":
+                mark = "*"
+            else:
+                mark = "**"
+            ax.text(ii, y + h, mark, ha='center', va='bottom', color=col, fontsize=20)
+
+def calculate_mannW_pvals(centers, col, feature1, feature2):
+    """Compute Mann Whitney rank test p-values corrected for multiple tests."""
+    pvals, clus = [], []
+    for ii in centers.columns[:-1]:
+        x = centers.loc[:, [ii, col]]
+        x1 = x[x[col] == feature1].iloc[:, 0]
+        x2 = x[x[col] == feature2].iloc[:, 0]
+        pval = mannwhitneyu(x1, x2)[1]
+        pvals.append(pval)
+        clus.append(ii)
+    return dict(zip(clus, multipletests(pvals)[1]))
+
+
+def build_pval_matrix(ncl, pvals):
+    """Build data frame with pvalues per cluster"""
+    data = pd.DataFrame()
+    data["Clusters"] = pvals.keys()
+    data["p-value"] = pvals.values()
+    signif = []
+    for val in pvals.values():
+        if 0.01 < val < 0.05:
+            signif.append("<0.05")
+        elif val < 0.01:
+            signif.append("<0.01")
+        else:
+            signif.append("NS")
+    data["Significant"] = signif
+    return data
+
+
 def formatPhenotypesForModeling(cv, red, sw, c):
     """Format and merge phenotye data sets for modeling"""
     # Cell Viability
-    v_ut = y_pre(cv, "UT", 96, "Viability", all_lines, itp=itp)
-    v_e = y_pre(cv, "-E", 96, "Viability", all_lines, itp=itp)
-    v_ae = y_pre(cv, "A/E", 96, "Viability", all_lines, itp=itp)
+    v_ut = y_pre(cv, "UT", 96, "Viability", itp=itp)
+    v_e = y_pre(cv, "-E", 96, "Viability", itp=itp)
+    v_ae = y_pre(cv, "A/E", 96, "Viability", itp=itp)
 
     # Cell Death
-    cd_ut = y_pre(red, "UT", 96, "Apoptosis", all_lines, itp=itp)
-    cd_e = y_pre(red, "-E", 96, "Apoptosis", all_lines, itp=itp)
-    cd_ae = y_pre(red, "A/E", 96, "Apoptosis", all_lines, itp=itp)
+    cd_ut = y_pre(red, "UT", 96, "Apoptosis", itp=itp)
+    cd_e = y_pre(red, "-E", 96, "Apoptosis", itp=itp)
+    cd_ae = y_pre(red, "A/E", 96, "Apoptosis", itp=itp)
 
     # Migration
-    m_ut = y_pre(sw, "UT", 10, "Migration", all_lines)
-    m_e = y_pre(sw, "-E", 10, "Migration", all_lines)
-    m_ae = y_pre(sw, "A/E", 10, "Migration", all_lines)
+    m_ut = y_pre(sw, "UT", 10, "Migration")
+    m_e = y_pre(sw, "-E", 10, "Migration")
+    m_ae = y_pre(sw, "A/E", 10, "Migration")
     m_ut.index = v_ut.index
     m_e.index = v_e.index
     m_ae.index = v_ae.index
@@ -445,6 +494,31 @@ def barplot_UtErlAF154(ax, lines, ds, ftp, t1, t2, ylabel, title, colors, TimePo
     ax.set_title(title)
     ax.set_xticklabels(lines, rotation=90)
     ax.legend(prop={'size': 8}, loc=loc)
+
+
+def plotMotifs(pssms, axes, titles=False, yaxis=False):
+    """Generate logo plots of a list of PSSMs"""
+    for i, ax in enumerate(axes):
+        pssm = pssms[i].T
+        if pssm.shape[0] == 11:
+            pssm.index = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]
+        elif pssm.shape[0] == 9:
+            pssm.index = [-5, -4, -3, -2, -1, 1, 2, 3, 4]
+        logo = lm.Logo(pssm,
+                       font_name='Arial',
+                       vpad=0.1,
+                       width=.8,
+                       flip_below=False,
+                       center_values=False,
+                       ax=ax)
+        logo.ax.set_ylabel('log_{2} (Enrichment Score)')
+        logo.style_xticks(anchor=1, spacing=1)
+        if titles:
+            logo.ax.set_title(titles[i] + " Motif")
+        else:
+            logo.ax.set_title('Motif Cluster ' + str(i + 1))
+        if yaxis:
+            logo.ax.set_ylim([yaxis[0], yaxis[1]])
 
 
 def plotDistanceToUpstreamKinase(model, clusters, ax, kind="strip", num_hits=5, additional_pssms=False, add_labels=False, title=False, PsP_background=True):
