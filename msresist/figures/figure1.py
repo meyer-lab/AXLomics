@@ -50,7 +50,7 @@ def makeFigure():
 
     # PCA phenotypes
     y = formatPhenotypesForModeling(cv, red, sw, c)
-    plotPCA(ax[6:8], y, 3, ["Lines", "Treatment"], "Phenotype", hue_scores="Lines", style_scores="Treatment", legendOut=True)
+    plotPCA(ax[6:8], y, 3, ["Lines", "Treatment"], hue_scores="Lines", style_scores="Treatment", legendOut=True)
 
     return f
 
