@@ -54,7 +54,7 @@ def makeFigure():
     ax[2].axis("off")
 
     # Centers
-    plotCenters_together(ddmc, X, ax[3])
+    plotCenters_together(ddmc, X, ax[3], drop=5)
 
     # Predictions
     Xs, models = ComputeCenters(X, d, i, ddmc)
@@ -84,7 +84,7 @@ def plotCenters_together(ddmc, X, ax, drop=None):
     m["p-signal"] = m["p-signal"].astype("float64")
     sns.set_context("paper", rc={'lines.linewidth': 1}) 
     palette ={1: "C0", 2: "C1", 3: "C2", 4: "C3", 5: "k"}
-    sns.barplot(x="Lines", y="p-signal", data=m, hue="Cluster", ax=ax, palette=palette, **{"linewidth": 0})
+    sns.lineplot(x="Lines", y="p-signal", data=m, hue="Cluster", ax=ax, palette=palette, **{"linewidth": 2}, marker="o", markersize=10)
 
 
 def ComputeCenters(X, d, i, ddmc):
@@ -103,6 +103,4 @@ def ComputeCenters(X, d, i, ddmc):
     ddmc_seq = DDMC(i, n_components=ddmc.n_components, SeqWeight=ddmc.SeqWeight + 150, distance_method=ddmc.distance_method, random_state=ddmc.random_state).fit(d)
     ddmc_seq_c = ddmc_seq.transform()
 
-    # DDMC mix
-    ddmc_c = ddmc.fit(d).transform()
-    return [d, c_kmeans, c_gmm, ddmc_seq_c, ddmc_c], ["Unclustered", "k-means", "GMM", "DDMC seq", "DDMC mix"]
+    return [d, c_kmeans, c_gmm, ddmc_seq_c], ["Unclustered", "k-means", "GMM", "DDMC seq"]
