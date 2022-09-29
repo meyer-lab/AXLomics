@@ -20,7 +20,7 @@ pd.set_option("display.max_columns", 30)
 def makeFigure():
     """Get a list of the axis objects and create a figure"""
     # Get list of axis objects
-    ax, f = getSetup((16, 12), (3, 3), multz={0: 1})
+    ax, f = getSetup((15, 10), (3, 3), multz={0: 1})
 
     # Add subplot labels
     subplotLabel(ax)
@@ -50,7 +50,7 @@ def makeFigure():
 
     # PCA phenotypes
     y = formatPhenotypesForModeling(cv, red, sw, c)
-    plotPCA(ax[6:8], y, 3, ["Lines", "Treatment"], hue_scores="Lines", style_scores="Treatment", legendOut=True)
+    plotPCA(ax[6:], y, 3, ["Lines", "Treatment"], hue_scores="Lines", style_scores="Treatment", legendOut=True)
 
     return f
 
