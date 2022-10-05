@@ -6,10 +6,9 @@ import numpy as np
 import pandas as pd
 import matplotlib
 import seaborn as sns
-from .common import subplotLabel, getSetup
+from .common import subplotLabel, getSetup, plotMotifs
 from ..clustering import DDMC
 from ..pre_processing import preprocessing
-import logomaker as lm
 
 
 def makeFigure():
