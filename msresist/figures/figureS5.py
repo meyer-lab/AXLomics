@@ -3,7 +3,7 @@ This creates Supplemental Figure 4: Motifs
 """
 
 import numpy as np
-import pandas as pd 
+import pandas as pd
 import matplotlib
 import seaborn as sns
 from .common import subplotLabel, getSetup, plotMotifs
@@ -59,3 +59,28 @@ def plotCenters(ax, model, xlabels, yaxis=False, drop=False):
         ax[i].set_title("Cluster " + str(centers.index[i] + 1) + " Center " + "(" + "n=" + str(num_peptides[i]) + ")")
         if yaxis:
             ax[i].set_ylim([yaxis[0], yaxis[1]])
+
+
+def plotMotifs(pssms, axes, titles=False, yaxis=False):
+    """Generate logo plots of a list of PSSMs"""
+    for i, ax in enumerate(axes):
+        pssm = pssms[i].T
+        if pssm.shape[0] == 11:
+            pssm.index = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]
+        elif pssm.shape[0] == 9:
+            pssm.index = [-5, -4, -3, -2, -1, 1, 2, 3, 4]
+        logo = lm.Logo(pssm,
+                       font_name='Arial',
+                       vpad=0.1,
+                       width=.8,
+                       flip_below=False,
+                       center_values=False,
+                       ax=ax)
+        logo.ax.set_ylabel('log_{2} (Enrichment Score)')
+        logo.style_xticks(anchor=1, spacing=1)
+        if titles:
+            logo.ax.set_title(titles[i] + " Motif")
+        else:
+            logo.ax.set_title('Motif Cluster ' + str(i + 1))
+        if yaxis:
+            logo.ax.set_ylim([yaxis[0], yaxis[1]])

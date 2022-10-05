@@ -63,7 +63,20 @@ def plotPCA(ax, d, n_components, scores_ind, hue_scores=None, style_scores=None,
         ax[1].axvline(0, ls='--', color='lightgrey')
 
 
-def plotPCA_scoresORloadings(ax, d, n_components, scores_ind, loadings_ind, hue_scores=None, style_scores=None, pvals=None, style_load=None, legendOut=False, plot="scores", annotateScores=False, size_dots=100):
+def plotPCA_scoresORloadings(
+        ax,
+        d,
+        n_components,
+        scores_ind,
+        loadings_ind,
+        hue_scores=None,
+        style_scores=None,
+        pvals=None,
+        style_load=None,
+        legendOut=False,
+        plot="scores",
+        annotateScores=False,
+        size_dots=100):
     """Plot PCA scores only"""
     pp = PCA(n_components=n_components)
     dScor_ = pp.fit_transform(d.select_dtypes(include=["float64"]).values)
