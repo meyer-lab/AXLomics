@@ -153,4 +153,3 @@ def plotScoresLoadings(ax, model, X, Y, ncl, treatments, pcX=1, pcY=2, data="clu
     ax[1].set_ylabel("Principal Component 2", fontsize=11)
     ax[1].axhline(y=0, color="0.25", linestyle="--")
     ax[1].axvline(x=0, color="0.25", linestyle="--")
-
