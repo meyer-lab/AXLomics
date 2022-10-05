@@ -23,6 +23,7 @@ mutants = ['PC9', 'KO', 'KIN', 'KD', 'M4', 'M5', 'M7', 'M10', 'M11', 'M15']
 all_lines = ["WT", "KO", "KI", "KD", "Y634F", "Y643F", "Y698F", "Y726F", "Y750F", "Y821F"]
 itp = 24
 
+
 def getSetup(figsize, gridd, multz=None, empts=None):
     """ Establish figure set-up with subplots. """
     sns.set(style="whitegrid", font_scale=0.7, color_codes=True, palette="colorblind", rc={"grid.linestyle": "dotted", "axes.linewidth": 0.6})
@@ -327,6 +328,8 @@ def TransformTimeCourseMatrixForSeaborn(x, l, itp, ylabel, treatments):
     return y
 
 # Add clustergram to manuscript as an svg file since makefigure can't add it as a subplot object
+
+
 def plotClustergram(data, title=False, lim=False, robust=True, ylabel="", yticklabels=False, xticklabels=False, figsize=(10, 10)):
     """ Clustergram plot. """
     g = sns.clustermap(data, method="centroid", cmap="bwr", robust=robust, vmax=lim, vmin=-lim, figsize=figsize, yticklabels=yticklabels, xticklabels=xticklabels)

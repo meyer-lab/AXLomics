@@ -82,6 +82,7 @@ def plotCenters_together(ddmc, X, ax, drop=None):
         centers = centers.set_index("Cluster").drop(drop, axis=0).reset_index()
     m = pd.melt(centers, id_vars=["Cluster"], value_vars=list(centers.columns), value_name="p-signal", var_name="Lines")
     m["p-signal"] = m["p-signal"].astype("float64")
+
     sns.set_context("paper", rc={'lines.linewidth': 1}) 
     palette ={1: "C0", 2: "C1", 3: "C2", 4: "C3", 5: "k"}
     sns.barplot(x="Lines", y="p-signal", data=m, hue="Cluster", ax=ax, palette=palette, **{"linewidth": 0})
