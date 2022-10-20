@@ -12,7 +12,7 @@ from msresist.pre_processing import MeanCenter
 from msresist.validations import pos_to_motif
 from msresist.clustering import DDMC
 from msresist.pca import plotPCA
-from msresist.figures.figure2 import plotDistanceToUpstreamKinase
+from AXLomics.msresist.figures.figure3 import plotDistanceToUpstreamKinase
 
 sns.set(style="whitegrid", font_scale=1, color_codes=True, palette="colorblind", rc={"grid.linestyle": "dotted", "axes.linewidth": 0.6})
 

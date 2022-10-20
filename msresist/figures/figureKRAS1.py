@@ -13,7 +13,7 @@ from ..pre_processing import MeanCenter
 from ..validations import pos_to_motif
 from ..clustering import DDMC
 from ..pca import plotPCA
-from .figure2 import plotDistanceToUpstreamKinase
+from .figure3 import plotDistanceToUpstreamKinase
 from .figureM5 import plot_GO
 
 

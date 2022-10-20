@@ -207,6 +207,7 @@ def PlotRipleysK(folder, mutant, treatments, replicates, ax, title=False):
     df = pd.melt(df, ["Radii"])
     df.columns = ["Radii", "Condition", "K Estimate"]
     sns.lineplot(x="Radii", y="K Estimate", hue="Condition", data=df, ci=68, ax=ax)
+    ax.set_xlim(0, 2.5)
     ax.legend(prop={'size': 8})
     if title:
         ax.set_title(title)
