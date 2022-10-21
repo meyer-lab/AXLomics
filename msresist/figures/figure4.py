@@ -7,14 +7,16 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
-from .common import subplotLabel, getSetup, TimePointFoldChange, plot_IdSites
-from msresist.pre_processing import preprocessing
+from .common import subplotLabel, getSetup, TimePointFoldChange
+from .figure3 import lines
+from ..pre_processing import preprocessing
+from ..clustering import DDMC
 
 
 def makeFigure():
     """Get a list of the axis objects and create a figure"""
     # Get list of axis objects
-    ax, f = getSetup((15, 14), (4, 4), multz={0: 1, 8: 2, 13: 1})
+    ax, f = getSetup((15, 14), (4, 4), multz={0: 1})
 
     # Add subplot labels
     subplotLabel(ax)
@@ -23,33 +25,77 @@ def makeFigure():
     matplotlib.rcParams['font.sans-serif'] = "Arial"
     sns.set(style="whitegrid", font_scale=1, color_codes=True, palette="colorblind", rc={"grid.linestyle": "dotted", "axes.linewidth": 0.6})
 
-    # Import Dasatinib DR MS data
-    X = preprocessing(AXL_Das_DR=True, Vfilter=True, log2T=True, mc_row=False)
-    for i in range(X.shape[0]):
-        X.iloc[i, 6:11] -= X.iloc[i, 6]
-        X.iloc[i, 11:] -= X.iloc[i, 11]
+    # Clustermap of dasatinib-responsive peptides
+    # plot_dasatinib_MS_clustermaps(DR=True, AXLs=False) Export Figure 1A. Clustermap doesn't have ax argument
+    ax[0].axis("off")
 
-    # Das DR time point
-    plot_InhDR_timepoint(ax[0], "Dasatinib", itp=24)
+    # Enrichment of dasatinib-responsive peptides in clusters 2&3
+    plotHyerGeomTestDasDRGenes(ax[1])
 
-    # Luminex p-ASY Das DR
-    plot_pAblSrcYap(ax[1:4])
+    # FAK pathway in AXL WT vs AXL KO
+    FAKpatwhay_AXL_WTvsKO(ax[2], WTvsKO=True)
 
-    # Das DR Mass Spec Dose response cluster
+    # YAP enrichment E vs EA
+    ax[3].axis("off")
+
+    # YAP western blots +/- E and +/- A with varying cell density
     ax[4].axis("off")
 
-    # AXL Mass Spec Cluster 4 enrichment of peptides in Das DR cluster
-    plotHyerGeomTestDasDRGenes(ax[5])
-    ax[5].set_ylim(0, 0.7)
+    # Protein and phospho-AXL levels in KO and WT Dasatinib DR
+    plot_protein_and_phosphoAXL_dasatinib(ax[5])
 
-    # Selected peptides within Dasatinib DR Cluster
-    abl_sfk = {'LYN': 'Y397-p', 'YES1': 'Y223-p', 'ABL1': 'Y393-p', 'FRK': 'Y497-p', 'LCK': 'Y394-p'}
-    plot_IdSites(ax[6], X, abl_sfk, "ABL&SFK", rn=False, ylim=False, xlabels=list(X.columns[6:]))
+    # YAP blots with YAP DR
+    ax[5].axis("off")
 
-    # Das DR Mass Spec WT/KO dif
-    ax[7].axis("off")
+    # Immunofluorescence showing YAP and AXL in island and isolated cells
+    ax[6].axis("off")
 
     return f
+
+
+def plot_protein_and_phosphoAXL_dasatinib(ax):
+    ad = pd.read_csv("/home/marcc/AXLomics/msresist/data/Validations/Luminex/102022-Luminex_AXL_Das.csv")
+    ad.iloc[:, 1:] = np.log(ad.iloc[:, 1:])
+    ad = pd.melt(ad, id_vars="Sample", value_vars=["tAXL", "pAXL"], var_name="t/p", value_name="log(abundance)")
+
+    _, ax = plt.subplots(1, 1, figsize=(5, 4))
+    sns.stripplot(ad, x="Sample", y="log(abundance)", hue="t/p", dodge=True, ax=ax)
+    sns.boxplot(ad, x="Sample", y="log(abundance)", hue="t/p", width=0.5, color="white", ax=ax)
+    ax.legend().remove()
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
+
+
+def FAKpatwhay_AXL_WTvsKO(ax, WTvsKO=True):
+    """ Plot the phosphorylation signal of identified proteins in Wilson et al Oncotarget 2014 as  members of FAK patwhay"""
+    # Import siganling data
+    MS = preprocessing(AXLm_ErlAF154=True, Vfilter=True, FCfilter=True, log2T=True, mc_row=True)
+    d = MS.select_dtypes(include=['float64']).T
+    i = MS.select_dtypes(include=['object'])
+
+    # Fit DDMC
+    MS.insert(0, "Phosphosite", [g + " " + p for g, p in zip(list(MS["Gene"]), list(MS["Position"]))])
+    ddmc = DDMC(i, n_components=5, SeqWeight=2, distance_method="PAM250", random_state=5).fit(d)
+    MS.insert(0, "Cluster", ddmc.labels())
+    d = MS.set_index(["Cluster", "Gene", "Phosphosite"]).select_dtypes(include=[float])
+    d.columns = lines
+    d = d.reset_index()
+
+    # FAK signature gene from Wilson et al 2014
+    fakS_phos = ["PTK2 Y570-p", "NEDD9 T185-p", "PEAK1 Y531-p", "CDK1 Y15-p", "AFAP1L2 S389-p", "PIK3R2 Y460-p;S457-p", "MYH9 Y9-p;Y11-p", "VCL Y692-p", "TNK2 Y859-p", "ACTN1 Y215-p", "BCAR3 Y212-p", "ABL1 Y185-p", "CNN3 Y261-p", "CAVIN1 Y308-p"]
+
+    if WTvsKO: # plot just WT and KO
+        phos_fak = d.set_index("Phosphosite").loc[:, ["WT", "KO"]].loc[fakS_phos].reset_index()
+        phos_fak.columns = ["Phosphosite", "PC9 WT", "PC9 AXL KO"]
+    else: # plot all AXL mutant cell lines
+        phos_fak = d.set_index("Phosphosite").iloc[:, 2:].loc[fakS_phos].reset_index()
+    phos_fak = pd.melt(phos_fak, value_vars=list(phos_fak.columns[1:]), id_vars="Phosphosite", var_name="Cell Line", value_name="norm log(p-signal)")
+    phos_fak.iloc[phos_fak[phos_fak["Phosphosite"].str.contains("CDK1")].index, -1] *= -1
+
+    # plot
+    sns.stripplot(phos_fak, x="Cell Line", y="norm log(p-signal)", dodge=False, linewidth=1, hue="Cell Line", ax=ax)
+    sns.boxplot(phos_fak, x="Cell Line", y="norm log(p-signal)", ax=ax, width=0.5, color="white").set_title("FAK pathway (Wilson et al 2014)")
+    ax.legend().remove()
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
 
 
 def plot_YAPinhibitorTimeLapse(ax, X, ylim=False):
@@ -90,7 +136,7 @@ def fold_change_acrossBRs(data, itp):
     """Compute fold change to initial time point in every BR.
     Note that data should always be a list, even if just one BR."""
     new = []
-    for i, mat in enumerate(data):
+    for _, mat in enumerate(data):
         new.append(TimePointFoldChange(mat, itp))
     return new
 
@@ -115,12 +161,13 @@ def plotHyerGeomTestDasDRGenes(ax):
     Counts generated using GenerateHyperGeomTestParameters()."""
     hg = pd.DataFrame()
     hg["Cluster"] = np.arange(5) + 1
-    hg["p_value"] = [0.527, 0.003, 0.002, 0.404, 0.0557]
+    hg["p_value"] = -np.log10[0.527, 0.003, 0.002, 0.404, 0.0557]
+    hg["test"] = ["", "**", "**", "", "ns"]
     sns.barplot(data=hg, x="Cluster", y="p_value", ax=ax, color="darkblue", **{"linewidth": 1}, **{"edgecolor": "black"})
     ax.set_title("Enrichment of Das-responsive Peptides")
     ax.set_ylim((0, 0.55))
-    for index, row in hg.iterrows():
-        ax.text(row.Cluster - 1, row.p_value + 0.01, round(row.p_value, 3), color='black', ha="center")
+    for _, row in hg.iterrows():
+        ax.text(row.Cluster - 1, row.p_value + 0.01, row.test, color='black', ha="center")
 
 
 def GenerateHyperGeomTestParameters(A, X, dasG, cluster):
@@ -164,103 +211,7 @@ def merge_TRs(filename, nTRs):
     return inh
 
 
-def transform_siRNA(data, itp):
-    new = fold_change_acrossBRs(data, itp)
-    c = pd.concat(new, axis=0)
-    c = pd.melt(c, id_vars="Elapsed", value_vars=c.columns[1:], var_name="Lines", value_name="Fold-change confluency")
-    c["Treatment"] = [s.split(" ")[1] for s in c["Lines"]]
-    c["Construct"] = [s.split("-")[1] if "-" in s else "Non-T" for s in c["Lines"]]
-    c["Lines"] = [s.split(" ")[0] for s in c["Lines"]]
-    c = c[c["Elapsed"] >= itp]
-    return c
-
-
-def plot_siRNA_TimeLapse(ax, target, time=96, itp=24, trs=2):
-    d = merge_TRs("NEK_siRNA_BR1.csv", trs)
-    if target == "NEK6":
-        d = [d.loc[:, ~d.columns.str.contains("7")]]
-    elif target == "NEK7":
-        d = [d.loc[:, ~d.columns.str.contains("6")]]
-    d = transform_siRNA(d, itp)
-    wt = d[d["Lines"] == "WT"]
-    ko = d[d["Lines"] == "KO"]
-    sns.lineplot(x="Elapsed", y="Fold-change confluency", data=wt, hue="Treatment", style="Construct", ax=ax[0]).set_title("PC9 WT-si" + target)
-    sns.lineplot(x="Elapsed", y="Fold-change confluency", data=ko, hue="Treatment", style="Construct", ax=ax[1]).set_title("PC9 AXL KO-si" + target)
-
-
-def plot_pAblSrcYap(ax):
-    """Plot luminex p-signal of p-ABL, p-SRC, and p-YAP 127."""
-    mfi_AS = pd.read_csv("msresist/data/Validations/Luminex/DasatinibDR_newMEK_lysisbuffer.csv")
-    mfi_AS = pd.melt(mfi_AS, id_vars=["Treatment", "Line", "Lysis_Buffer"], value_vars=["p-MEK", "p-YAP", "p-ABL", "p-SRC"], var_name="Protein", value_name="p-Signal")
-    mfi_YAP = pd.read_csv("msresist/data/Validations/Luminex/DasatinibDR_pYAP127_check.csv")
-    mfi_YAP = pd.melt(mfi_YAP, id_vars=["Treatment", "Line", "Lysis_Buffer"], value_vars=["p-MEK", "p-YAP(S127)"], var_name="Protein", value_name="p-Signal")
-    abl = mfi_AS[(mfi_AS["Protein"] == "p-ABL") & (mfi_AS["Lysis_Buffer"] == "RIPA")].iloc[:-1, :]
-    abl["Treatment"] = [t.replace("A", "(A)") for t in abl["Treatment"]]
-    abl["Treatment"][6:] = abl["Treatment"][1:6]
-    src = mfi_AS[(mfi_AS["Protein"] == "p-SRC") & (mfi_AS["Lysis_Buffer"] == "NP-40")].iloc[:-2, :]
-    src["Treatment"] = [t.replace("A", "(A)") for t in src["Treatment"]]
-    src["Treatment"][6:] = src["Treatment"][1:6]
-    yap = mfi_YAP[(mfi_YAP["Protein"] == "p-YAP(S127)") & (mfi_YAP["Lysis_Buffer"] == "RIPA")].iloc[:-1, :]
-    yap["Treatment"] = [t.replace("A", "(A)") for t in yap["Treatment"]]
-    yap["Treatment"][6:] = yap["Treatment"][1:6]
-
-    sns.barplot(data=abl, x="Treatment", y="p-Signal", hue="Line", ax=ax[0])
-    ax[0].set_title("p-ABL")
-    ax[0].set_xticklabels(abl["Treatment"][:6], rotation=90)
-    sns.barplot(data=src, x="Treatment", y="p-Signal", hue="Line", ax=ax[1])
-    ax[1].set_title("p-SRC")
-    ax[1].set_xticklabels(src["Treatment"][:6], rotation=90)
-    sns.barplot(data=yap, x="Treatment", y="p-Signal", hue="Line", ax=ax[2])
-    ax[2].set_title("p-YAP S127")
-    ax[2].set_xticklabels(yap["Treatment"][:6], rotation=90)
-
-
-def plot_pAblSrcYap2(ax, line="WT"):
-    """Plot luminex p-signal of p-ABL, p-SRC, and p-YAP 127."""
-    mfi_AS = pd.read_csv("msresist/data/Validations/Luminex/ABL_SRC_YAP_DasDR.csv")
-    mfi_AS = pd.melt(mfi_AS, id_vars=["Treatment", "Line"], value_vars=["p-YAP S127", "p-SRC Y416", "p-ABL Y245"], var_name="Protein", value_name="p-Signal")
-    mfi_AS = mfi_AS[mfi_AS["Line"] == line]
-
-    abl = mfi_AS[(mfi_AS["Protein"] == "p-ABL Y245")]
-    src = mfi_AS[(mfi_AS["Protein"] == "p-SRC Y416")]
-    yap = mfi_AS[(mfi_AS["Protein"] == "p-YAP S127")]
-
-    a = sns.barplot(data=abl, x="Treatment", y="p-Signal", ax=ax[0])
-    a.set_title("p-ABL Y245")
-    a.set_xticklabels(a.get_xticklabels(), rotation=90)
-    s = sns.barplot(data=src, x="Treatment", y="p-Signal", ax=ax[1])
-    s.set_title("p-SRC Y416")
-    s.set_xticklabels(s.get_xticklabels(), rotation=90)
-    y = sns.barplot(data=yap, x="Treatment", y="p-Signal", ax=ax[2])
-    y.set_title("p-YAP S127")
-    y.set_xticklabels(y.get_xticklabels(), rotation=90)
-
-
-def plot_pAblSrcYap3(ax, line="WT"):
-    """Plot luminex p-signal of p-ABL, p-SRC, and p-YAP 127."""
-    mfi_AS = pd.read_csv("msresist/data/Validations/Luminex/20210730 ABL_SRC_YAP_DasDR 2_20210730_182250.csv")
-    mfi_AS = pd.melt(mfi_AS, id_vars=["Treatment", "Line", "Experiment"], value_vars=["p-YAP S127", "p-SRC Y416", "p-ABL Y245"], var_name="Protein", value_name="p-Signal")
-    mfi_AS = mfi_AS[mfi_AS["Line"] == line]
-
-    abl = mfi_AS[(mfi_AS["Protein"] == "p-ABL Y245")]
-    abl["Treatment"] = [t.replace("A", "(A)") for t in abl["Treatment"]]
-    src = mfi_AS[(mfi_AS["Protein"] == "p-SRC Y416")]
-    src["Treatment"] = [t.replace("A", "(A)") for t in src["Treatment"]]
-    yap = mfi_AS[(mfi_AS["Protein"] == "p-YAP S127")]
-    yap["Treatment"] = [t.replace("A", "(A)") for t in yap["Treatment"]]
-
-    a = sns.barplot(data=abl, x="Treatment", y="p-Signal", ax=ax[0], hue="Experiment")
-    a.set_title("p-ABL Y245")
-    a.set_xticklabels(a.get_xticklabels(), rotation=90)
-    s = sns.barplot(data=src, x="Treatment", y="p-Signal", ax=ax[1], hue="Experiment")
-    s.set_title("p-SRC Y416")
-    s.set_xticklabels(s.get_xticklabels(), rotation=90)
-    y = sns.barplot(data=yap, x="Treatment", y="p-Signal", ax=ax[2], hue="Experiment")
-    y.set_title("p-YAP S127")
-    y.set_xticklabels(y.get_xticklabels(), rotation=90)
-
-
-def plot_dasatinib_MS_clustermaps(full=False, DR=False, AXLs=False):
+def plot_dasatinib_MS_clustermaps(DR=False, AXLs=False):
     """Generate clustermaps of PC9 WT/KO cells treated with an increasing concentration of dasatinib.
     Choose between entire data set, dose response only, or WT up KO down clusters.
     Note that sns.clustermap needs its own figure so these plots will be added manually."""
@@ -288,3 +239,5 @@ def plot_dasatinib_MS_clustermaps(full=False, DR=False, AXLs=False):
     g_ud = sns.clustermap(data_ud.T, cmap="bwr", method="centroid", robust=True, vmax=lim, vmin=-lim, figsize=(10, 5), xticklabels=True, row_cluster=False)
     if AXLs:
         plt.savefig("AXL.svg")
+
+
