@@ -19,10 +19,7 @@ test: venv
 testcover: venv
 	. venv/bin/activate && pytest --junitxml=junit.xml --cov=msresist --cov-report xml:coverage.xml
 
-msresist/data/RNAseq/AXLrna/AXLmutants_RNAseq_merged.feather: msresist/data/RNAseq/AXLmutants_RNAseq_merged.feather.xz
-	xz -vk -d $<
-
-msresist/data/RNAseq/AXLrna/AXLmutants_RNAseq_merged.feather: /home/marcc/AXLomics/msresist/data/RNAseq/Maynard/S01_datafinal.xz
+msresist/data/RNAseq/AXLmutants_RNAseq_merged.feather: msresist/data/RNAseq/AXLmutants_RNAseq_merged.feather.xz
 	xz -vk -d $<
 
 %.pdf: %.ipynb

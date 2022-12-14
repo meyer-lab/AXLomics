@@ -27,7 +27,6 @@ def R2Y_across_components(model, X, Y, max_comps, crossval=False):
         R2Ys.append(explained_variance_score(Y, y_pred))
     return R2Ys
 
-
 def plotR2YQ2Y(ax, model, X, Y, b=3, color="darkblue", title=False):
     """ Plot R2Y/Q2Y variance explained by each component. """
     Q2Y = R2Y_across_components(model, X, Y, b, crossval=True)
@@ -155,4 +154,3 @@ def plotScoresLoadings(ax, model, X, Y, ncl, treatments, pcX=1, pcY=2, data="clu
     ax[1].set_ylabel("Principal Component 2", fontsize=11)
     ax[1].axhline(y=0, color="0.25", linestyle="--")
     ax[1].axvline(x=0, color="0.25", linestyle="--")
-

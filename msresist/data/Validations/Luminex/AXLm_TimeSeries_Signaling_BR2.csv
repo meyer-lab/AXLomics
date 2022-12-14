@@ -1,4 +1,4 @@
-﻿Cell Line,Treatment,Time point,p-MEK,p-JNK,p-Erk,p-Src,p-Abl,p-mTOR,p-Stat3,Akt,p-YAP,tAXL,p-AXL,p-EGFR
+Cell Line,Treatment,Time point,p-MEK,p-JNK,p-Erk,p-Src,p-Abl,p-mTOR,p-Stat3,Akt,p-YAP,tAXL,p-AXL,p-EGFR
 WT,UT,0,740,24,30,83,153,302,100.5,2799,1093,214,30,1731
 WT,A,5,2386.5,23,36,54,158,260,91,3134,1460,333.5,184,1182.5
 WT,AE,5,1285,33.5,21,82,149.5,400.5,104,669,1505,300,165.5,50

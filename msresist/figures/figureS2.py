@@ -28,6 +28,10 @@ def makeFigure():
     itp = 24
     leg_idx = [0, 10, 20, 30, 40]
 
+    # Bar plots
+    barplot_UtErlAF154(ax[0], lines, cv, 96, tr1, tr2, "fold-change confluency", "Cell Viability (t=96h)", colors, TreatmentFC="-E", TimePointFC=itp, loc='upper right')
+    barplot_UtErlAF154(ax[11], lines, red, 72, tr1, tr2, "fold-change YOYO+ cells", "Cell Death (t=72h)", TreatmentFC="-E", colors=colors, TimePointFC=itp, loc='lower center')
+
     # Time courses
     for i, line in enumerate(lines):
         IndividualTimeCourses(cv, 96, lines, tr1, tr2, "fold-change confluency", TimePointFC=24, TreatmentFC=False, plot=line, ax_=ax[i], ylim=[0.8, 10])

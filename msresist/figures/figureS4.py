@@ -55,3 +55,58 @@ def makeFigure():
     ax[7].get_legend().remove()
 
     return f
+
+
+def kinase_heatmap(X, prot_dict, ax, FC=False):
+    """ Make a heatmap out of a dictionary wih p-sites """
+    out = []
+    for p, s in prot_dict:
+        out.append(X.set_index(["Gene", "Position"]).loc[p, s])
+    out = pd.concat(out).select_dtypes(include=[float])
+    if FC:
+        for ii in range(out.shape[1]):
+            out.iloc[:, ii] /= out.iloc[:, 0]
+    sns.heatmap(out, cmap="bwr", ax=ax)
+    ax.set_xticklabels(lines)
+    ax.set_xlabel("AXL Y—>F mutants")
+    ax.set_ylabel("")
+
+
+def kinases_clustermap(X):
+    """Clustermap of all kinases showing a minimum variance acros mutants"""
+    k = X[X["Protein"].str.contains("kinase")]
+    XIDX = np.any(k.iloc[:, 8:-1] <= -0.5, axis=1) | np.any(k.iloc[:, 8:-1] >= 0.5, axis=1)
+    k = k.iloc[list(XIDX), :].set_index(["Gene", "Position"]).select_dtypes(include=[float])
+    k = k.drop("AXL")
+    sns.clustermap(k, cmap="bwr", xticklabels=lines)
+
+
+def AXL_volcanoplot(X):
+    """AXL vs No AXL volcano plot"""
+    axl_in = X[["PC9 A", "KI A"]].values
+    axl_out = X[["KO A", "Kd A"]].values
+    pvals = f_oneway(axl_in, axl_out, axis=1)[1]
+    pvals = multipletests(pvals)[1]
+    fc = axl_in.mean(axis=1) - axl_out.mean(axis=1)
+    pv = pd.DataFrame()
+    pv["Peptide"] = [g + ";" + p for g, p in list(zip(X["Gene"], X["Position"]))]
+    pv["logFC"] = fc
+    pv["p-values"] = pvals
+    pv = pv.sort_values(by="p-values")
+    visuz.GeneExpression.volcano(
+        df=pv,
+        lfc='logFC',
+        pv='p-values',
+        show=True,
+        geneid="Peptide",
+        lfc_thr=(
+            0.5,
+            0.5),
+        genenames="deg",
+        color=(
+            "#00239CFF",
+            "grey",
+            "#E10600FF"),
+        figtype="svg",
+        gstyle=2,
+        axtickfontname='Arial')

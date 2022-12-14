@@ -102,8 +102,6 @@ def Island_pvals(c, all_lines):
 
     return table.T[all_lines].T
 
-
-
 # —————Supplement—————:
 
 # mutants = ['PC9', 'KO', 'KIN', 'KD', 'M4', 'M5', 'M7', 'M10', 'M11', 'M15']

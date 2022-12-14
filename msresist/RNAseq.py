@@ -67,9 +67,8 @@ def import_RNAseq():
         data = data.set_index("target_id")
         tpm_table = tpm_table.append(data.iloc[:, -1].rename(condition))
     return tpm_table.T.sort_index(axis=1)
-
-
-def filter_by_EvEAvar(rna_f, savefig=False, perCut=50):
+    
+    def filter_by_EvEAvar(rna_f, savefig=False, perCut=50):
     rnaE = rna_f[rna_f["Treatment"] == "E"].sort_values(by="Cell Lines")
     rnaEA = rna_f[(rna_f["Treatment"] == "EA") | (rna_f["Cell Lines"] == "KO") & ~(rna_f["Treatment"] == "UT")].sort_values(by="Cell Lines")
     ssd = []
