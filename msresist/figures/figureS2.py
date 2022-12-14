@@ -5,31 +5,28 @@ This creates Supplemental Figure 2: Cell Viability and death
 import matplotlib
 import pandas as pd
 import seaborn as sns
-from .common import subplotLabel, getSetup, IndividualTimeCourses, import_phenotype_data, barplot_UtErlAF154
+from .common import subplotLabel, getSetup, IndividualTimeCourses, import_phenotype_data
+from ..distances import PlotRipleysK
 
 
 def makeFigure():
     """Get a list of the axis objects and create a figure"""
     # Get list of axis objects
-    ax, f = getSetup((15, 10), (4, 6), multz={0: 1, 12: 1})
+    ax, f = getSetup((11, 17), (8, 5))
 
-    # Add subplot labels
-    subplotLabel(ax)
-
-    # Set plotting format
-    matplotlib.rcParams['font.sans-serif'] = "Arial"
-    sns.set(style="whitegrid", font_scale=1.2, color_codes=True, palette="colorblind", rc={"grid.linestyle": "dotted", "axes.linewidth": 0.6})
-
-    # Read in viability and apoptosis data
+    # Read in phenotype data
     cv = import_phenotype_data(phenotype="Cell Viability")
     red = import_phenotype_data(phenotype="Cell Death")
+    sw = import_phenotype_data(phenotype="Migration")
 
     # Labels
     lines = ["WT", "KO", "KI", "KD", "Y634F", "Y643F", "Y698F", "Y726F", "Y750F", "Y821F"]
+    mutants = ['PC9', 'KO', 'KIN', 'KD', 'M4', 'M5', 'M7', 'M10', 'M11', 'M15']
     tr1 = ["-UT", "-E", "-A/E"]
     tr2 = ["Untreated", "Erlotinib", "Erl + AF154"]
-    colors = ["white", "windows blue", "scarlet"]
+    # t2 = ["Untreated", "AF154", "Erlotinib", "Erl + AF154"]
     itp = 24
+    leg_idx = [0, 10, 20, 30, 40]
 
     # Bar plots
     barplot_UtErlAF154(ax[0], lines, cv, 96, tr1, tr2, "fold-change confluency", "Cell Viability (t=96h)", colors, TreatmentFC="-E", TimePointFC=itp, loc='upper right')
@@ -37,8 +34,13 @@ def makeFigure():
 
     # Time courses
     for i, line in enumerate(lines):
-        IndividualTimeCourses(cv, 96, lines, tr1, tr2, "fold-change confluency", TimePointFC=24, TreatmentFC="-E", plot=line, ax_=ax[i + 1], ylim=[0.8, 3.5])
-        IndividualTimeCourses(red, 96, lines, tr1, tr2, "fold-change apoptosis (YOYO+)", TimePointFC=itp, plot=line, ax_=ax[i + 12], ylim=[0, 13])
+        IndividualTimeCourses(cv, 96, lines, tr1, tr2, "fold-change confluency", TimePointFC=24, TreatmentFC=False, plot=line, ax_=ax[i], ylim=[0.8, 10])
+        IndividualTimeCourses(red, 96, lines, tr1, tr2, "fold-change apoptosis (YOYO+)", TimePointFC=24, plot=line, ax_=ax[i + 10], ylim=[0, 13])
+        IndividualTimeCourses(sw, 24, lines, tr1, tr2, "RWD %", plot=line, ax_=ax[i + 20])
+        PlotRipleysK('48hrs', mutants[i], ['ut', 'e', 'ae'], 6, ax=ax[i + 30], title=line)
+        ax[i + 30].set_ylim(0, 40)
+        if i not in leg_idx:
+            ax[i].legend().remove()
 
     return f
 

@@ -1,0 +1,48 @@
+﻿Cell Line,Treatment,Analyte,Abundance
+WT,UT,total AXL,1393
+WT,UT,total AXL,1448
+WT,E,total AXL,2538.5
+WT,E,total AXL,2592
+WT,E,total AXL,1889.5
+WT,EA,total AXL,1664
+WT,EA,total AXL,1518
+WT,EA,total AXL,1650
+YAP KO,UT,total AXL,4468
+YAP KO,UT,total AXL,2894
+YAP KO,UT,total AXL,3891
+YAP KO,E,total AXL,2682
+YAP KO,E,total AXL,2000
+YAP KO,E,total AXL,2977
+YAP KO,EA,total AXL,1971
+YAP KO,EA,total AXL,1443
+YAP KO,EA,total AXL,1681.5
+WT,UT,p-AXL,51.5
+WT,UT,p-AXL,50
+WT,UT,p-AXL,54
+WT,E,p-AXL,67
+WT,E,p-AXL,73.5
+WT,E,p-AXL,74
+WT,EA,p-AXL,66
+WT,EA,p-AXL,63
+WT,EA,p-AXL,69
+YAP KO,UT,p-AXL,75
+YAP KO,UT,p-AXL,82.5
+YAP KO,UT,p-AXL,71
+YAP KO,E,p-AXL,53
+YAP KO,E,p-AXL,59
+YAP KO,E,p-AXL,54
+YAP KO,EA,p-AXL,61
+YAP KO,EA,p-AXL,66
+YAP KO,EA,p-AXL,62.5
+WT,UT,total protein,0.547
+WT,UT,total protein,0.556
+WT,E,total protein,0.454
+WT,E,total protein,0.454
+WT,EA,total protein,0.447
+WT,EA,total protein,0.464
+YAP KO,UT,total protein,0.555
+YAP KO,UT,total protein,0.557
+YAP KO,E,total protein,0.441
+YAP KO,E,total protein,0.511
+YAP KO,EA,total protein,0.511
+YAP KO,EA,total protein,0.569
