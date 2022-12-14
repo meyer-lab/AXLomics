@@ -52,6 +52,8 @@ def preprocessing(
     merging_indices = list(X.select_dtypes(include=["object"]).columns)
 
     if rawdata:
+        if not FCtoUT:
+            X = Linear(X, data_headers)
         return X
 
     X = MapMotifs(X, genes)

@@ -291,7 +291,7 @@ def bootPCA(d, n_components, lIDX, method="PCA", n_boots=100):
                 dScor = red.transform(data)
                 varExp.append(r2_score(data, red.inverse_transform(dScor)))
 
-        dScor, dLoad = pca_dfs(dScor, red.components_, bootdf, n_components, sIDX, lIDX)
+        dScor, dLoad = pca_dfs(dScor, red.components_, bootdf, n_components, sIDX)
         bootScor.append(dScor)
         bootLoad.append(dLoad)
 

@@ -75,7 +75,7 @@ def makeFigure():
     # gseaplot_EGFRres_signature(X, ddmc) gseaplot doesn't have an ax argument
 
     # WT vs KO Heatmap of specific p-sites
-    WTvsKO_heatmap_psites(X)
+    WTvsKO_heatmap_psites(X, ddmc)
 
     return f
 
@@ -137,7 +137,7 @@ def gseaplot_EGFRres_signature(MS, ddmc):
          term=term,
          **pre_res.results[term])
 
-def WTvsKO_heatmap_psites(MS):
+def WTvsKO_heatmap_psites(MS, ddmc, figsize=(4, 10)):
     """Make heatmap of specific p-sites of AXL WT EA vs KO labeling cluster membership"""
 
     kin = [
@@ -174,18 +174,19 @@ def WTvsKO_heatmap_psites(MS):
     "MAPK13 Y182-p",
     "MAPK14 Y182-p",
     "ICK S152-p",
-    "ICK Y159-p",
+    "TNK2 Y859-p",
     "PRKCD Y313-p",
     "CDK1 Y15-p",
     "CDK2 Y15-p",
     ]
-
+    MS.insert(0, "Phosphosite", [g + " " + p for g, p in zip(list(MS["Gene"]), list(MS["Position"]))])
+    MS.insert(0, "Cluster", ddmc.labels())
     s_ea = MS.set_index("Phosphosite").loc[kin][["PC9 A", "KO A", "Cluster"]]
     s_ea.columns = ["WT", "KO", "Cluster"]
     clusters = s_ea.pop("Cluster")
     lut = dict(zip(clusters.unique(), ["darkgreen", "violet", "black", "yellow"]))
     row_colors = clusters.map(lut)
-    sns.clustermap(data=s_ea, cmap="coolwarm", row_cluster=False, col_cluster=False, row_colors=row_colors, linewidth=1, linecolor='w', square=True, robust=True, figsize=(4, 9))
+    sns.clustermap(data=s_ea, cmap="coolwarm", row_cluster=False, col_cluster=False, row_colors=row_colors, linewidth=1, linecolor='w', square=True, robust=True, figsize=figsize)
 
 
 # AXL p-sites in WT UT vs WT E

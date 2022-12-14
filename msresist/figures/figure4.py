@@ -8,7 +8,6 @@ import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 from .common import subplotLabel, getSetup, TimePointFoldChange
-from .figure3 import lines
 from ..pre_processing import preprocessing
 from ..clustering import DDMC
 
@@ -65,35 +64,39 @@ def plot_protein_and_phosphoAXL_dasatinib(ax):
     ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
 
 
-def FAKpatwhay_AXL_WTvsKO(ax, WTvsKO=True):
+def FAKpatwhay_AXL_WTvsKO(ax, WTvsKO=True, ds="AXL"):
     """ Plot the phosphorylation signal of identified proteins in Wilson et al Oncotarget 2014 as  members of FAK patwhay"""
-    # Import siganling data
-    MS = preprocessing(AXLm_ErlAF154=True, Vfilter=True, FCfilter=True, log2T=True, mc_row=True)
-    d = MS.select_dtypes(include=['float64']).T
-    i = MS.select_dtypes(include=['object'])
+    if ds == "AXL":
+        # Import siganling data
+        MS = preprocessing(AXLm_ErlAF154=True, Vfilter=True, FCfilter=True, log2T=True, mc_row=True)
+        xlabel = "Cell Line"
+        fakS_phos = ["PTK2 Y570-p", "NEDD9 T185-p", "PEAK1 Y531-p", "CDK1 Y15-p", "AFAP1L2 S389-p", "PIK3R2 Y460-p;S457-p", "MYH9 Y9-p;Y11-p", "VCL Y692-p", "TNK2 Y859-p", "ACTN1 Y215-p", "BCAR3 Y212-p", "ABL1 Y185-p", "CNN3 Y261-p", "CAVIN1 Y308-p"] # FAK signature gene from Wilson et al 2014
+        lines = ["WT", "KO", "KD", "KI", "Y634F", "Y643F", "Y698F", "Y726F", "Y750F ", "Y821F"]
+
+    elif ds == "Dasatinib":
+        MS = preprocessing(AXL_Das_DR=True, Vfilter=True, FCfilter=False, log2T=True, mc_row=True)
+        xlabel = "Sample"
+        lines = MS.columns[6:]
+        fakS_phos = ["PTK2 Y925-p", "NEDD9 Y345-p", "PEAK1 Y531-p", "CDK1 T14-p", "AFAP1L2 S389-p", "PIK3R2 Y605-p", "TNK2 Y859-p", "ACTN1 S244-p", "BCAR3 Y117-p", "ABL1 Y393-p"] # FAK signature gene from Wilson et al 2014
 
     # Fit DDMC
     MS.insert(0, "Phosphosite", [g + " " + p for g, p in zip(list(MS["Gene"]), list(MS["Position"]))])
-    ddmc = DDMC(i, n_components=5, SeqWeight=2, distance_method="PAM250", random_state=5).fit(d)
-    MS.insert(0, "Cluster", ddmc.labels())
-    d = MS.set_index(["Cluster", "Gene", "Phosphosite"]).select_dtypes(include=[float])
+    d = MS.set_index(["Gene", "Phosphosite"]).select_dtypes(include=[float])
     d.columns = lines
     d = d.reset_index()
-
-    # FAK signature gene from Wilson et al 2014
-    fakS_phos = ["PTK2 Y570-p", "NEDD9 T185-p", "PEAK1 Y531-p", "CDK1 Y15-p", "AFAP1L2 S389-p", "PIK3R2 Y460-p;S457-p", "MYH9 Y9-p;Y11-p", "VCL Y692-p", "TNK2 Y859-p", "ACTN1 Y215-p", "BCAR3 Y212-p", "ABL1 Y185-p", "CNN3 Y261-p", "CAVIN1 Y308-p"]
 
     if WTvsKO: # plot just WT and KO
         phos_fak = d.set_index("Phosphosite").loc[:, ["WT", "KO"]].loc[fakS_phos].reset_index()
         phos_fak.columns = ["Phosphosite", "PC9 WT", "PC9 AXL KO"]
-    else: # plot all AXL mutant cell lines
-        phos_fak = d.set_index("Phosphosite").iloc[:, 2:].loc[fakS_phos].reset_index()
-    phos_fak = pd.melt(phos_fak, value_vars=list(phos_fak.columns[1:]), id_vars="Phosphosite", var_name="Cell Line", value_name="norm log(p-signal)")
+    else: # plot all samples
+        phos_fak = d.set_index("Phosphosite").iloc[:, 1:].loc[fakS_phos].reset_index()
+
+    phos_fak = pd.melt(phos_fak, value_vars=list(phos_fak.columns[1:]), id_vars="Phosphosite", var_name=xlabel, value_name="norm log(p-signal)")
     phos_fak.iloc[phos_fak[phos_fak["Phosphosite"].str.contains("CDK1")].index, -1] *= -1
 
     # plot
-    sns.stripplot(phos_fak, x="Cell Line", y="norm log(p-signal)", dodge=False, linewidth=1, hue="Cell Line", ax=ax)
-    sns.boxplot(phos_fak, x="Cell Line", y="norm log(p-signal)", ax=ax, width=0.5, color="white").set_title("FAK pathway (Wilson et al 2014)")
+    sns.stripplot(phos_fak, x=xlabel, y="norm log(p-signal)", dodge=False, linewidth=1, hue=xlabel, ax=ax)
+    sns.boxplot(phos_fak, x=xlabel, y="norm log(p-signal)", ax=ax, width=0.5, color="white").set_title("FAK pathway (Wilson et al 2014)")
     ax.legend().remove()
     ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
 
@@ -211,7 +214,7 @@ def merge_TRs(filename, nTRs):
     return inh
 
 
-def plot_dasatinib_MS_clustermaps(DR=False, AXLs=False):
+def plot_dasatinib_MS_clustermaps(Full=False, DR=False, AXLs=False):
     """Generate clustermaps of PC9 WT/KO cells treated with an increasing concentration of dasatinib.
     Choose between entire data set, dose response only, or WT up KO down clusters.
     Note that sns.clustermap needs its own figure so these plots will be added manually."""
@@ -224,10 +227,10 @@ def plot_dasatinib_MS_clustermaps(DR=False, AXLs=False):
     data = X.set_index(["Gene", "Position"]).select_dtypes(include=["float64"])
     lim = np.max(abs(data.values)) * 0.5
 
-    g = sns.clustermap(data, method="centroid", cmap="bwr", robust=True, vmax=lim, vmin=-lim, figsize=(10, 10), xticklabels=True, col_cluster=False)
-    dict(zip(X.iloc[g.dendrogram_row.reordered_ind[:55], 2].values, X.iloc[g.dendrogram_row.reordered_ind[:67], 3].values))
-    if DR:
+    g = sns.clustermap(data.T, method="centroid", cmap="bwr", robust=True, vmax=lim, vmin=-lim, figsize=(15, 6), yticklabels=True, col_cluster=True, row_cluster=False)
+    if Full:
         plt.savefig("full.svg")
+    dict(zip(X.iloc[g.dendrogram_row.reordered_ind[:55], 2].values, X.iloc[g.dendrogram_row.reordered_ind[:67], 3].values))
 
     data_dr = X.iloc[g.dendrogram_row.reordered_ind[:55], :].set_index(["Gene", "Position"]).select_dtypes(include=["float64"])
     sns.clustermap(data_dr.T, method="centroid", cmap="bwr", robust=True, vmax=lim, vmin=-lim, figsize=(15, 5), xticklabels=True, col_cluster=True, row_cluster=False)

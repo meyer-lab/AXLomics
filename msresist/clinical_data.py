@@ -91,14 +91,14 @@ def heatmap_ClusterVsTargets_Corr(targets, omic="Protein", title=False):
         g.fig.suptitle(title)
 
 
-def find_axl_levels(prot, up_thres=1, low_thresh=-1):
+def find_axl_levels(prot):
     """ Find AXLhi & AXLlow """
     prot_axl = pd.DataFrame(prot.loc["AXL"])
     prot_axl["Levels"] = pd.qcut(prot.loc["AXL"], 3, labels=["Low", "Medium", "High"]).values
     return prot_axl
 
 
-def volcano(X, prot, gene_label, export=False, multiple_testing=True, lfc_thr=(1, 1), pv_thr=(0.05, 0.05)):
+def volcano(X, prot, gene_label, export=False, multiple_testing=True, lfc_thr=(1, 1), pv_thr=(0.05, 0.05), genenames="deg", show=True):
     l1 = list(prot.loc["AXL"].index)
     l2 = list(X.columns)
     dif = [i for i in l1 + l2 if i not in l1 or i not in l2]
@@ -106,7 +106,7 @@ def volcano(X, prot, gene_label, export=False, multiple_testing=True, lfc_thr=(1
     assert all(X.columns.values == np.array(l1)), "Samples don't match"
 
     # Find AXLhi & AXLlow
-    prot_axl = find_axl_levels(prot)
+    prot_axl = find_axl_levels_by_thres(prot)
     axl_hi = X[list(prot_axl[prot_axl["Levels"] == "High"].index)]
     axl_low = X[list(prot_axl[prot_axl["Levels"] == "Low"].index)]
 
@@ -119,10 +119,11 @@ def volcano(X, prot, gene_label, export=False, multiple_testing=True, lfc_thr=(1
     prot_fc = pd.DataFrame()
     prot_fc["Protein"] = axl_hi.reset_index()[gene_label].values
     prot_fc["Position"] = axl_hi.reset_index()["Position"].values
+    prot_fc["Prot_Pos"] = [pn + "-" + pos for pn, pos in list(zip(list(prot_fc["Protein"]), list(prot_fc["Position"])))]
     prot_fc["logFC"] = axl_hi.mean(axis=1).values - axl_low.mean(axis=1).values
     prot_fc["p-values"] = pvals
     prot_fc = prot_fc.sort_values(by="p-values")
-    visuz.GeneExpression.volcano(df=prot_fc.dropna(), lfc='logFC', pv='p-values', lfc_thr=lfc_thr, pv_thr=pv_thr, show=True, geneid="Protein", genenames='deg', figtype="svg", dim=(10, 8))
+    visuz.GeneExpression.volcano(df=prot_fc.dropna(), lfc='logFC', pv='p-values', lfc_thr=lfc_thr, pv_thr=pv_thr, show=show, geneid="Protein", genenames=genenames, figtype="png", dim=(10, 8))
 
     if export:
         return prot_fc

@@ -10,7 +10,7 @@ import mygene
 import gseapy as gp
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
-from msresist.pca import pca_dfs, plotPCA_scoresORloadings
+from msresist.pca import pca_dfs
 from msresist.pre_processing import Linear
 
 
@@ -42,8 +42,8 @@ def cytoscape_input(ddmc, X):
 
 
 def preprocess_AXL_RNAseq_data():
-    rna = pd.read_feather("msresist/data/RNAseq/AXLmutants_RNAseq_merged.feather").iloc[:, 1:]
-    idsT = pd.read_csv("msresist/data/RNAseq/transcripts_to_genes.csv")
+    rna = pd.read_feather("/home/marcc/AXLomics/msresist/data/RNAseq/AXLrna/AXLmutants_RNAseq_merged.feather").iloc[:, 1:]
+    idsT = pd.read_csv("/home/marcc/AXLomics/msresist/data/RNAseq/AXLrna/transcripts_to_genes.csv")
     ids = dict(zip(idsT["ENSEMBL1"], idsT["SYMBOL"]))
     rna.insert(0, "Cell Lines", [s[:3] if "M1" in s else s[:2] for s in rna["Cell Line"]])
     rna.insert(1, "Treatment", [s[-1] if s[-1] == "E" in s else s[-2:] for s in rna["Cell Line"]])
