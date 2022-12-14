@@ -8,10 +8,9 @@ pytest-cov==3.0.0
 biopython==1.79
 scikit-learn==1.0
 jupyter==1.0.0
-astropy==4.3.1
+astropy
 logomaker==0.8
 svgutils==0.3.4
 fancyimpute
 statsmodels==0.13.0
-virtualenv==20.17.1
 git+https://github.com/biothings/mygene.py.git@master
