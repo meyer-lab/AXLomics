@@ -27,7 +27,6 @@ def R2Y_across_components(model, X, Y, max_comps, crossval=False):
         R2Ys.append(explained_variance_score(Y, y_pred))
     return R2Ys
 
-
 def plotR2YQ2Y(ax, model, X, Y, b=3, color="darkblue", title=False):
     """ Plot R2Y/Q2Y variance explained by each component. """
     Q2Y = R2Y_across_components(model, X, Y, b, crossval=True)
@@ -95,7 +94,7 @@ def add_rBox(ypred, y, ax):
     ax.text(0.75, 0.10, textstr, transform=ax.transAxes, verticalalignment="top", bbox=props)
 
 
-def plotStripActualVsPred(ax, n_components, Xs, Y, models, size=10):
+def plotStripActualVsPred(ax, n_components, Xs, Y, models, size=10, type="strip"):
     """Actual vs Predicted of different PLSR models"""
     datas = []
     for ii, X in enumerate(Xs):
@@ -103,12 +102,14 @@ def plotStripActualVsPred(ax, n_components, Xs, Y, models, size=10):
         Y_predictions = cross_val_predict(PLSRegression(n_components=n_components[ii]), X, Y, cv=Y.shape[0])
         coeff = [sp.stats.pearsonr(Y_predictions[:, jj], Y.iloc[:, jj])[0] for jj in range(len(Y.columns))]
         data["Phenotype"] = list(Y.columns)
-        data["r-score"] = coeff
+        data["r-score (Actual vs Predicted)"] = coeff
         data["Model"] = models[ii]
         datas.append(data)
     res = pd.concat(datas)
-    sns.stripplot(x="Phenotype", y="r-score", data=res, ax=ax, hue="Model", size=size)
-    ax.set_title("Actual vs Predicted")
+    if type == "strip":
+        sns.stripplot(x="Phenotype", y="r-score (Actual vs Predicted)", data=res, ax=ax, hue="Model", size=size)
+    elif type == "bar":
+        sns.barplot(x="Phenotype", y="r-score (Actual vs Predicted)", data=res, ax=ax, hue="Model")
     ax.legend(prop={'size': 8})
 
 

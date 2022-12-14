@@ -23,7 +23,6 @@ mutants = ['PC9', 'KO', 'KIN', 'KD', 'M4', 'M5', 'M7', 'M10', 'M11', 'M15']
 all_lines = ["WT", "KO", "KI", "KD", "Y634F", "Y643F", "Y698F", "Y726F", "Y750F", "Y821F"]
 itp = 24
 
-
 def getSetup(figsize, gridd, multz=None, empts=None):
     """ Establish figure set-up with subplots. """
     sns.set(style="whitegrid", font_scale=0.7, color_codes=True, palette="colorblind", rc={"grid.linestyle": "dotted", "axes.linewidth": 0.6})
@@ -167,7 +166,7 @@ def format_islands_byTreatments(island_data, treatment):
 
 
 def IndividualTimeCourses(
-    ds, ftp, lines, t1, t2, ylabel, TimePointFC=False, TreatmentFC=False, savefig=False, plot="Full", ax_=False, figsize=(20, 10), title=False, ylim=False
+    ds, ftp, lines, t1, t2, ylabel, TimePointFC=False, TreatmentFC=False, out=False, plot="Full", ax_=False, figsize=(20, 10), title=False, ylim=False
 ):
     """ Plot time course data of each cell line across treatments individually. """
     ds = FixColumnLabels(ds)
@@ -191,24 +190,24 @@ def IndividualTimeCourses(
     d = TransformTimeCourseMatrixForSeaborn(c, lines, TimePointFC, ylabel, t)
 
     if plot == "Full":
-        fig, ax = plt.subplots(nrows=2, ncols=5, sharex=True, sharey=True, figsize=figsize)
+        _, ax = plt.subplots(nrows=2, ncols=5, sharex=True, sharey=True, figsize=figsize)
         for i, line in enumerate(lines):
             x = d[d["Lines"] == line]
             if i < 5:
-                sns.lineplot(x="Elapsed (h)", y=ylabel, hue="Treatments", data=x, err_style="bars", ci=68, ax=ax[0, i])
+                sns.lineplot(x="Elapsed (h)", y=ylabel, hue="Treatments", data=x, err_style="bars", errorbar=('ci', 68), ax=ax[0, i])
                 ax[0, i].set_title(line)
                 ax[0, i].set_ylabel(ylabel)
                 if i > 0:
                     ax[0, i].legend().remove()
             else:
-                sns.lineplot(x="Elapsed (h)", y=ylabel, hue="Treatments", data=x, err_style="bars", ci=68, ax=ax[1, i - 5])
+                sns.lineplot(x="Elapsed (h)", y=ylabel, hue="Treatments", data=x, errorbar=('ci', 68), ax=ax[1, i - 5])
                 ax[1, i - 5].set_title(line)
                 ax[1, i - 5].set_ylabel(ylabel)
                 ax[1, i - 5].legend().remove()
 
     if plot != "Full":
         x = d[d["Lines"] == plot]
-        sns.lineplot(x="Elapsed (h)", y=ylabel, hue="Treatments", data=x, err_style="bars", ci=68, ax=ax_)
+        sns.lineplot(x="Elapsed (h)", y=ylabel, hue="Treatments", data=x, err_style="bars", errorbar=('ci', 68), ax=ax_)
         if title:
             ax_.set_title(title)
         else:
@@ -218,8 +217,8 @@ def IndividualTimeCourses(
         if ylim:
             ax_.set_ylim(ylim)
 
-    if savefig:
-        fig.savefig("TimeCourse.pdf", bbox_inches="tight")
+    if out:
+        return x
 
 
 def import_phenotype_data(phenotype="Cell Viability", merge=True):
@@ -328,8 +327,6 @@ def TransformTimeCourseMatrixForSeaborn(x, l, itp, ylabel, treatments):
     return y
 
 # Add clustergram to manuscript as an svg file since makefigure can't add it as a subplot object
-
-
 def plotClustergram(data, title=False, lim=False, robust=True, ylabel="", yticklabels=False, xticklabels=False, figsize=(10, 10)):
     """ Clustergram plot. """
     g = sns.clustermap(data, method="centroid", cmap="bwr", robust=robust, vmax=lim, vmin=-lim, figsize=figsize, yticklabels=yticklabels, xticklabels=xticklabels)
@@ -464,7 +461,7 @@ def plot_IdSites(ax, x, d, title, rn=False, ylim=False, xlabels=False):
         ax.set_ylim(ylim)
 
 
-def barplot_UtErlAF154(ax, lines, ds, ftp, t1, t2, ylabel, title, colors, TimePointFC=False, TreatmentFC=False, loc='best'):
+def barplot_UtErlAF154(ax, lines, ds, ftp, t1, t2, ylabel, title, colors, TimePointFC=False, TreatmentFC=False, loc='best', drop="Erlotinib"):
     """ Cell viability bar plot at a specific end point across conditions, with error bars.
     Note that ds should be a list containing all biological replicates."""
     ds = FixColumnLabels(ds)
@@ -487,11 +484,11 @@ def barplot_UtErlAF154(ax, lines, ds, ftp, t1, t2, ylabel, title, colors, TimePo
     pal = sns.xkcd_palette(colors)
 
     if TreatmentFC:
-        c = c[~c["Treatment"].str.contains("Erlotinib")]
+        c = c[~c["Treatment"].str.contains(drop)]
         ax.axhline(1, ls='--', label="Erlotinib", color="red", linewidth=1)
 
     ax = sns.barplot(
-        x="AXL mutants Y->F", y=ylabel, hue="Treatment", data=c, ci=68, ax=ax, palette=pal, **{"linewidth": 0.5}, **{"edgecolor": "black"}
+        x="AXL mutants Y->F", y=ylabel, hue="Treatment", data=c, errorbar=('ci', 68), ax=ax, palette=pal, **{"linewidth": 0.5}, **{"edgecolor": "black"}
     )
 
     ax.set_title(title)

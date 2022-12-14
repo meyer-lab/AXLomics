@@ -13,7 +13,7 @@ path = os.path.dirname(os.path.abspath(__file__))
 
 ###-------------------------- Pre-processing MS data --------------------------###
 def preprocessing(
-    AXLwt_GF=False, AXLm_ErlAF154=False, AXL_Das_DR=False, Vfilter=False, FCfilter=False, log2T=False, FCtoUT=False, rawdata=False, mc_row=True, mc_col=False, corrCut=0.5,
+    AXLwt_GF=False, AXLm_Erl=False, AXLm_ErlAF154=False, AXL_Das_DR=False, Vfilter=False, FCfilter=False, log2T=False, FCtoUT=False, rawdata=False, mc_row=True, mc_col=False, corrCut=0.5,
 ):
     """ Input: Raw MS bio-replicates. Output: Mean-centered merged data set.
     1. Concatenation, 2. log-2 transformation, 3. Mean-Center, 4. Merging, 5. Fold-change,
@@ -27,6 +27,10 @@ def preprocessing(
         filesin.append(pd.read_csv(os.path.join(path, "./data/MS/GrowthFactors/20180817_JG_AM_TMT10plex_R1_psms_raw.csv")))
         filesin.append(pd.read_csv(os.path.join(path, "./data/MS/GrowthFactors/20190214_JG_AM_PC9_AXL_TMT10_AC28_R2_PSMs_raw.csv")))
         filesin.append(pd.read_csv(os.path.join(path, "./data/MS/GrowthFactors/CombinedBR3_TR1&2_raw.csv")))
+    if AXLm_Erl:
+        filesin.append(pd.read_csv(os.path.join(path, "./data/MS/AXL/PC9_mutants_erl_BR1_raw.csv")))
+        filesin.append(pd.read_csv(os.path.join(path, "./data/MS/AXL/PC9_mutants_erl_BR2_raw.csv")))
+        filesin.append(pd.read_csv(os.path.join(path, "./data/MS/AXL/PC9_mutants_erl_BR3_raw.csv")))
     if AXLm_ErlAF154:
         filesin.append(pd.read_csv(os.path.join(path, "./data/MS/AXL/PC9_mutants_ActivatingAb_BR1_raw_wAcc.csv")))
         filesin.append(pd.read_csv(os.path.join(path, "./data/MS/AXL/PC9_mutants_ActivatingAb_BR3_raw_wAcc.csv")))
@@ -48,6 +52,8 @@ def preprocessing(
     merging_indices = list(X.select_dtypes(include=["object"]).columns)
 
     if rawdata:
+        if not FCtoUT:
+            X = Linear(X, data_headers)
         return X
 
     X = MapMotifs(X, genes)
