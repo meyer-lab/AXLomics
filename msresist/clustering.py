@@ -10,7 +10,6 @@ from sklearn.utils.validation import check_is_fitted
 from .binomial import Binomial, AAlist, BackgroundSeqs, frequencies
 from .pam250 import PAM250
 from .motifs import PSPLdict, compute_control_pssm
-from fancyimpute import SoftImpute
 
 
 # pylint: disable=W0201
@@ -74,12 +73,7 @@ class DDMC(GaussianMixture):
         d = np.array(X.T)
 
         if np.any(np.isnan(d)):
-            self._missing = True
-            self.missing_d = np.isnan(d)
-
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                d = SoftImpute(verbose=False).fit_transform(d)
+            raise RuntimeError("We removed missing value handling.")
         else:
             self._missing = False
 
