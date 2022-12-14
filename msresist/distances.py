@@ -100,7 +100,7 @@ def PlotNhrsdistances(folder, mutants, treatments, replicates, ax, log=False, lo
             logs.append(math.log(length))
         to_plot["Log Distances"] = logs
         if logmean:
-            sns.pointplot(x="Mutant", y="Log Distances", hue="Condition", data=to_plot, ci=68, join=False, dodge=0.4, ax=ax)
+            sns.pointplot(x="Mutant", y="Log Distances", hue="Condition", data=to_plot, errorbar=('ci', 68), join=False, dodge=0.4, ax=ax)
         else:
             sns.boxplot(x="Mutant", y="Log Distances", hue="Condition", data=to_plot, ax=ax)
     else:
@@ -131,7 +131,7 @@ def Plot_Logmean(folder, mutants, treatments, replicates, ax, vs_count=False, ce
         # for line in range(0, to_plot.shape[0]):
         # b.text(to_plot.Cells.iloc[line], to_plot.Log_Mean_Distances.iloc[line], to_plot.Mutant.iloc[line], horizontalalignment='left', size='medium', color='black', weight='semibold')
     else:
-        sns.pointplot(x="Mutant", y="Log_Mean_Distances", hue="Condition", data=to_plot, ci=68, join=False, dodge=0.25, ax=ax)
+        sns.pointplot(x="Mutant", y="Log_Mean_Distances", hue="Condition", data=to_plot, errorbar=('ci', 68), join=False, dodge=0.25, ax=ax)
 
 
 def calculatedistances_logmean(file, mutant, treatment, vs_count, cells=(1, 3)):
@@ -186,7 +186,7 @@ def shortest_distances(file_df, cell_tuple):
     return shortest_n_distances, points.shape[0]
 
 
-def PlotRipleysK(folder, mutant, treatments, replicates, ax, title=False):
+def PlotRipleysK(folder, mutant, treatments, replicates, ax, title=False, out=False):
     """Plots the Ripley's K Estimate in comparison to the Poisson for a range of radii"""
     Kest = RipleysKEstimator(area=158.8761, x_max=14.67, y_max=10.83, x_min=0, y_min=0)
     r = np.linspace(0, 5, 51)
@@ -206,12 +206,15 @@ def PlotRipleysK(folder, mutant, treatments, replicates, ax, title=False):
     df.columns = ["Radii", "Poisson", "Untreated", "Erlotinib", "AF154 + Erlotinib"]
     df = pd.melt(df, ["Radii"])
     df.columns = ["Radii", "Condition", "K Estimate"]
-    sns.lineplot(x="Radii", y="K Estimate", hue="Condition", data=df, ci=68, ax=ax)
+    sns.lineplot(x="Radii", y="K Estimate", hue="Condition", data=df, errorbar=('ci', 68), ax=ax)
+    ax.set_xlim(0, 2.5)
     ax.legend(prop={'size': 8})
     if title:
         ax.set_title(title)
     else:
         ax.set_title(mutant)
+    if out:
+        return df
 
 
 def BarPlotRipleysK(ax, folder, mutants, xticklabels, treatments, legendlabels, replicates, r, colors, TreatmentFC=False, ylabel=False):
@@ -241,7 +244,7 @@ def BarPlotRipleysK(ax, folder, mutants, xticklabels, treatments, legendlabels, 
         ax.axhline(1, ls='--', label="Erlotinib", color="red", linewidth=1)
 
     pal = sns.xkcd_palette(colors)
-    sns.barplot(x="AXL mutants Y->F", y="K Estimate", hue="Treatment", data=df, ci=68, palette=pal, ax=ax, **{"linewidth": 0.5}, **{"edgecolor": "black"})
+    sns.barplot(x="AXL mutants Y->F", y="K Estimate", hue="Treatment", data=df, errorbar=('ci', 68), palette=pal, ax=ax, **{"linewidth": 0.5}, **{"edgecolor": "black"})
     ax.set_title("Island effect")
     ax.set_xticklabels(xticklabels, rotation=90)
     ax.legend(prop={'size': 8})
@@ -267,7 +270,7 @@ def BarPlotRipleysK_TimePlots(folder, mutant, extensions, treatments, r, ax):
         # add_poisson(poisson, mutant, df)
         treatment_dfs.append(df)
     df = pd.concat(treatment_dfs)
-    sns.barplot(x="Mutant", y="K Estimate", hue="Treatment", data=df, ci=68, ax=ax)
+    sns.barplot(x="Mutant", y="K Estimate", hue="Treatment", data=df, errorbar=('ci', 68), ax=ax)
     ax.set_xlabel("")
     ax.legend(loc=4, frameon=False)
 
@@ -314,7 +317,7 @@ def PlotRipleysK_TimeCourse(folder, extensions, timepoint, ax):
     df.columns = ["Radii", "Poisson", "Untreated", "Erlotinib", "Erlotinib + AF154"]
     df = pd.melt(df, ["Radii"])
     df.columns = ["Radii", "Condition", "K Estimate"]
-    sns.lineplot(x="Radii", y="K Estimate", hue="Condition", data=df, ci=68, ax=ax)
+    sns.lineplot(x="Radii", y="K Estimate", hue="Condition", data=df, errorbar=('ci', 68), ax=ax)
     ax.set_title(str(timepoint) + " hours")
 
 
