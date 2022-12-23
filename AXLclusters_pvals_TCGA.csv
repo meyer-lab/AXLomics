@@ -1,0 +1,21 @@
+﻿Cluster,Cancer Type,Metric,logrank p-value,n_high,n_low,Group Cutoff
+1,LUAD,DSF,0.49,120,120,Quartile
+2,LUAD,DSF,0.33,120,120,Quartile
+3,LUAD,DSF,0.18,120,120,Quartile
+4,LUAD,DSF,0.16,120,120,Quartile
+5,LUAD,DSF,0.37,0.37,120,Quartile
+1,PAAD,DSF,0.0071,45,45,Quartile
+2,PAAD,DSF,0.011,45,45,Quartile
+3,PAAD,DSF,0.0059,45,45,Quartile
+4,PAAD,DSF,0.017,45,45,Quartile
+5,PAAD,DSF,0.025,45,45,Quartile
+1,LUAD,OS,0.33,120,120,Quartile
+2,LUAD,OS,0.031,120,120,Quartile
+3,LUAD,OS,0.0071,120,120,Quartile
+4,LUAD,OS,0.0045,120,120,Quartile
+5,LUAD,OS,0.0058,120,120,Quartile
+1,PAAD,OS,0.036,45,45,Quartile
+2,PAAD,OS,0.1,45,45,Quartile
+3,PAAD,OS,0.013,45,45,Quartile
+4,PAAD,OS,0.057,45,45,Quartile
+5,PAAD,OS,0.018,45,45,Quartile

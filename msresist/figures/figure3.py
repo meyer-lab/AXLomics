@@ -146,22 +146,17 @@ def WTvsKO_heatmap_psites(MS, ddmc, figsize=(4, 10)):
     "ERBB2 Y877-p",
     "ERBB3 Y1328-p",
     "MET S988-p",
-    "GAB1 Y659-p",
     "GAB1 Y406-p",
     "GAB2 Y293-p",
-    "GRB2 Y160-p",
     "SOS1 Y1196-p",
     "DAPP1 Y139-p",
+    "EPS8 Y602-p",
     "CBLB Y363-p",
     "CBLB Y802-p;T798-p",
     "CBLB Y889-p;T885-p",
-    "FLNA Y2379-p",
-    "FLNB Y904-p",
-    "AHNAK S115-p",
     "FRK Y132-p",
     "LYN Y397-p",
     "LCK Y192-p",
-    "LCK Y394-p",
     "YES1 Y222-p",
     "YES1 S195-p",
     "ABL1 Y185-p",
@@ -179,6 +174,7 @@ def WTvsKO_heatmap_psites(MS, ddmc, figsize=(4, 10)):
     "CDK1 Y15-p",
     "CDK2 Y15-p",
     ]
+
     MS.insert(0, "Phosphosite", [g + " " + p for g, p in zip(list(MS["Gene"]), list(MS["Position"]))])
     MS.insert(0, "Cluster", ddmc.labels())
     s_ea = MS.set_index("Phosphosite").loc[kin][["PC9 A", "KO A", "Cluster"]]
