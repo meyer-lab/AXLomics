@@ -42,7 +42,7 @@ def cytoscape_input(ddmc, X):
 
 
 def preprocess_AXL_RNAseq_data():
-    rna = pd.read_feather("/home/marcc/AXLomics/msresist/data/RNAseq/AXLrna/AXLmutants_RNAseq_merged.feather").iloc[:, 1:]
+    rna = pd.read_feather("/home/marcc/AXLomics/msresist/data/RNAseq/AXLmutants_RNAseq_merged.feather").iloc[:, 1:]
     idsT = pd.read_csv("/home/marcc/AXLomics/msresist/data/RNAseq/AXLrna/transcripts_to_genes.csv")
     ids = dict(zip(idsT["ENSEMBL1"], idsT["SYMBOL"]))
     rna.insert(0, "Cell Lines", [s[:3] if "M1" in s else s[:2] for s in rna["Cell Line"]])
@@ -68,7 +68,7 @@ def import_RNAseq():
         tpm_table = tpm_table.append(data.iloc[:, -1].rename(condition))
     return tpm_table.T.sort_index(axis=1)
     
-    def filter_by_EvEAvar(rna_f, savefig=False, perCut=50):
+def filter_by_EvEAvar(rna_f, savefig=False, perCut=50):
     rnaE = rna_f[rna_f["Treatment"] == "E"].sort_values(by="Cell Lines")
     rnaEA = rna_f[(rna_f["Treatment"] == "EA") | (rna_f["Cell Lines"] == "KO") & ~(rna_f["Treatment"] == "UT")].sort_values(by="Cell Lines")
     ssd = []
