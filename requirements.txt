@@ -1,4 +1,4 @@
-scipy==1.9.3
+scipy==1.10.0
 matplotlib==3.6.2
 seaborn==0.12.1
 svgutils==0.3.4
