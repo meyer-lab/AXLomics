@@ -7,6 +7,7 @@ from string import ascii_uppercase
 from matplotlib import gridspec, pyplot as plt
 import matplotlib.cm as cm
 import pandas as pd
+from scipy.stats import zscore
 import seaborn as sns
 import logomaker as lm
 import svgutils.transform as st
@@ -317,7 +318,7 @@ def TransformTimeCourseMatrixForSeaborn(x, l, itp, ylabel, treatments):
     for _, row in x.iterrows():
         row = pd.DataFrame(row).T
         elapsed.extend(list(row["Elapsed"]) * (row.shape[1] - 1))
-        lines.extend(list(l) * (np.int((row.shape[1] - 1) / len(l))))
+        lines.extend(list(l) * (int((row.shape[1] - 1) / len(l))))
         cv.extend(row.iloc[0, 1:].values)
 
     y["Elapsed (h)"] = elapsed
@@ -505,7 +506,6 @@ def plotMotifs(pssms, axes, titles=False, yaxis=False):
         elif pssm.shape[0] == 9:
             pssm.index = [-5, -4, -3, -2, -1, 1, 2, 3, 4]
         logo = lm.Logo(pssm,
-                       font_name='Arial',
                        vpad=0.1,
                        width=.8,
                        flip_below=False,
@@ -536,6 +536,7 @@ def plotDistanceToUpstreamKinase(model, clusters, ax, kind="strip", num_hits=5, 
         ax.set_ylabel("Cluster")
 
     elif kind == "strip":
+        data = zscore(data, axis=1)
         data = pd.melt(data.reset_index(), id_vars="Kinase", value_vars=list(data.columns), var_name="Cluster", value_name="Frobenius Distance")
         if isinstance(add_labels, list):
             # Actual ERK predictions
@@ -597,3 +598,24 @@ def DrawArrows(ax, d2):
                  width=0.025,
                  fc='black',
                  ec='black')
+
+def Introduce_Correct_DDMC_labels(X, ddmc):
+    """Create a DataFrame with clusters 1, 2, and 3 from the DDMC clustering"""
+    X.insert(0, "Cluster", ddmc.labels())
+
+    DDMC_labels = []
+    for c in X["Cluster"]: # New vs Old DDMC labels, same results, different labels
+        if c == 1:
+            DDMC_labels.append(4) # 1 is 4
+        elif c == 2:
+            DDMC_labels.append(5) # 2 is 5
+        elif c == 3:
+            DDMC_labels.append(3) # 3 is 3
+        elif c == 4:
+            DDMC_labels.append(1) # 4 is 1          
+        elif c == 5:
+            DDMC_labels.append(2) # 5 is 2
+
+    X["Cluster"] = DDMC_labels
+
+    return X
