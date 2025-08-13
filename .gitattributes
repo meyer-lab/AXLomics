@@ -1,1 +1,2 @@
+*.feather filter=lfs diff=lfs merge=lfs -text
 msresist/data/RNAseq/AXLrna/AXLmutants_RNAseq_merged.feather filter=lfs diff=lfs merge=lfs -text
