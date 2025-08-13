@@ -10,8 +10,9 @@ import mygene
 import gseapy as gp
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
-from msresist.pca import pca_dfs
+from msresist.pca import pca_dfs, plotPCA_scoresORloadings  
 from msresist.pre_processing import Linear
+
 
 
 path = "/Users/creixell/Desktop/"
@@ -42,8 +43,8 @@ def cytoscape_input(ddmc, X):
 
 
 def preprocess_AXL_RNAseq_data():
-    rna = pd.read_feather("/home/marcc/AXLomics/msresist/data/RNAseq/AXLrna/AXLmutants_RNAseq_merged.feather").iloc[:, 1:]
-    idsT = pd.read_csv("/home/marcc/AXLomics/msresist/data/RNAseq/AXLrna/transcripts_to_genes.csv")
+    rna = pd.read_feather("/home/creixell/AXLomics/msresist/data/RNAseq/AXLrna/AXLmutants_RNAseq_merged.feather").iloc[:, 1:]
+    idsT = pd.read_csv("/home/creixell/AXLomics/msresist/data/RNAseq/AXLrna/transcripts_to_genes.csv")
     ids = dict(zip(idsT["ENSEMBL1"], idsT["SYMBOL"]))
     rna.insert(0, "Cell Lines", [s[:3] if "M1" in s else s[:2] for s in rna["Cell Line"]])
     rna.insert(1, "Treatment", [s[-1] if s[-1] == "E" in s else s[-2:] for s in rna["Cell Line"]])
@@ -67,8 +68,9 @@ def import_RNAseq():
         data = data.set_index("target_id")
         tpm_table = tpm_table.append(data.iloc[:, -1].rename(condition))
     return tpm_table.T.sort_index(axis=1)
-    
-    def filter_by_EvEAvar(rna_f, savefig=False, perCut=50):
+
+
+def filter_by_EvEAvar(rna_f, savefig=False, perCut=50):
     rnaE = rna_f[rna_f["Treatment"] == "E"].sort_values(by="Cell Lines")
     rnaEA = rna_f[(rna_f["Treatment"] == "EA") | (rna_f["Cell Lines"] == "KO") & ~(rna_f["Treatment"] == "UT")].sort_values(by="Cell Lines")
     ssd = []
@@ -106,8 +108,9 @@ def run_standard_gsea_EvsEA(rna_f, gene_sets=gene_sets, outdir=None, out=False):
     if out:
         return gsea_rnaf_wp
 
+
 def dotplot_std_EvsEA_gsea(rna_f):
-    gsea_rnaf_wp = run_standard_gsea_EvsEA(rna_f, gene_sets="WikiPathway_2021_Human", outdir=None, out=False)
+    gsea_rnaf_wp = run_standard_gsea_EvsEA(rna_f, gene_sets="WikiPathway_2021_Human", outdir=None, out=True)
     wp_terms = [0, 1, 2, 3, 5, 6, 7, 8, 9, 13, 14]
     wp_selected = gsea_rnaf_wp.res2d.iloc[wp_terms, :]
     wp_selected["Term"] = [t.split("WP")[0] for t in wp_selected["Term"]]
@@ -131,9 +134,15 @@ def dotplot_std_EvsEA_gsea(rna_f):
     g.axes.flat[0].legend(title='Hit %', bbox_to_anchor=(1.02, 1))
 
 
-def PCA_EA(rna_f, wUT=True):
-    rna_fEA = filter_by_EvEAvar(rna_f, savefig=False, perCut=50)
-    # plotPCA_scoresORloadings(ax, rna_fEA, 2, ["Cell Lines", "Treatment"], hue_scores="Cell Lines", style_scores="Treatment", legendOut=True, plot="scores")
+def PCA_EA(rna_f, wUT=True, plot_pca=False, ax=None):
+    rna_fEA = filter_by_EvEAvar(rna_f, savefig=False, perCut=50).astype(float)
+    rna_fEA = rna_fEA.T.reset_index()
+    rna_fEA = rna_fEA.rename(columns={"index": "Cell Lines"})
+    rna_fEA.insert(1, "Treatment", [s.split("-")[1] for s in rna_fEA["Cell Lines"]])
+    rna_fEA["Cell Lines"] = [s.split("-")[0] for s in rna_fEA["Cell Lines"]]
+
+    if plot_pca:
+        plotPCA_scoresORloadings(ax, rna_fEA, 2, ["Cell Lines", "Treatment"], hue_scores="Cell Lines", style_scores="Treatment", legendOut=True, plot="scores")
     n_components = 4
     scores_ind = ["Cell Lines"]
 
@@ -161,9 +170,9 @@ def PCA_EA(rna_f, wUT=True):
     LoadR_pcs.iloc[:, :] = StandardScaler().fit_transform(LoadR_pcs)
     return dLoad_EA
 
-def run_gsea_from_PCA_EA(rna_f, PCA="PC1", gene_sets=gene_sets, outdir=None):
+def run_gsea_from_PCA_EA(rna_f, PCA="PC1", plot_pca=False, ax=None, outdir=None):
     if PCA == "PC1":
-        dLoad_EA = PCA_EA(rna_f)
+        dLoad_EA = PCA_EA(rna_f, True, plot_pca, ax)
         dPC1 = dLoad_EA.reset_index().sort_values(by="PC1", ascending=False)[["Gene", "PC1"]]
         dPC1 = dPC1[~dPC1.index.duplicated()].set_index("Gene")
         dPC1.iloc[:, :] = StandardScaler().fit_transform(dPC1)
@@ -183,10 +192,36 @@ def run_gsea_from_PCA_EA(rna_f, PCA="PC1", gene_sets=gene_sets, outdir=None):
         LoadF_pcs.iloc[:, :] = StandardScaler().fit_transform(LoadF_pcs)
         rnk = LoadF_pcs
 
-    gp.prerank(rnk=rnk,
-                gene_sets=gene_sets,
-                processes=4,
-                permutation_num=100,
+    res = gp.prerank(rnk=rnk,
+                gene_sets=YAP_gene_sets(),
+                threads=4,
+                min_size=5,
+                max_size=1000,
+                permutation_num=1000,
                 outdir=outdir,
-                format='png',
-                seed=6)
+                seed=6,
+                verbose=True)
+
+    return res
+
+
+def YAP_gene_sets():
+    """Get YAP related gene sets from MSigDB and WikiPathways."""
+
+    onc_gs = gp.get_library("MSigDB_Oncogenic_Signatures")
+    wp = gp.get_library("WikiPathway_2021_Human")
+
+    keys = [
+        "CORDENONSI YAP CONSERVED SIGNATURE",
+        "YAP1 UP",
+        "Mechanoregulation and pathology of YAP/TAZ via Hippo and non-Hippo mechanisms WP4534"
+        ]
+
+    yap_gs = {}
+
+    for gs in [onc_gs, wp]:
+        for key in gs.keys():
+            if key in keys:
+                yap_gs[key] = gs[key]
+
+    return yap_gs

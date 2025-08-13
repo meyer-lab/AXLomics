@@ -8,12 +8,11 @@ import numpy as np
 import matplotlib
 import seaborn as sns
 import matplotlib
-from .common import subplotLabel, getSetup
 from ..clinical_data import *
-from ..pre_processing import filter_NaNpeptides
 from scipy.stats import ttest_ind
-from .common import subplotLabel, getSetup, import_phenotype_data, formatPhenotypesForModeling
+from .common import subplotLabel, getSetup, import_phenotype_data, IndividualTimeCourses, formatPhenotypesForModeling
 from ..pca import plotPCA
+from ..distances import PlotRipleysK
 
 sns.set(color_codes=True)
 
@@ -35,48 +34,31 @@ def makeFigure():
     matplotlib.rcParams['font.sans-serif'] = "Arial"
     sns.set(style="whitegrid", font_scale=1, color_codes=True, palette="colorblind", rc={"grid.linestyle": "dotted", "axes.linewidth": 0.6})
 
-    phos = filter_NaNpeptides(pd.read_csv("msresist/data/MS/CPTAC/CPTAC-preprocessedMotfis.csv").iloc[:, 1:], tmt=2)
-    prot = pd.read_csv("msresist/data/MS/CPTAC/CPTAC_LUAD_Protein.csv").drop_duplicates(subset="geneSymbol").set_index("geneSymbol").select_dtypes(include=float).iloc[:, 4:].reset_index()
-    rna = pd.read_csv("msresist/data/MS/CPTAC/CPTAC_LUAD_RNAseq.csv").drop_duplicates(subset="geneSymbol")
+    lines = ["WT", "KO", "KI", "KD", "Y634F", "Y643F", "Y698F", "Y726F", "Y750F", "Y821F"]
+    mutants = ['PC9', 'KO', 'KIN', 'KD', 'M4', 'M5', 'M7', 'M10', 'M11', 'M15']
+    tr1 = ["-UT", "-E", "-A/E"]
+    tr2 = ["Untreated", "Erlotinib", "Erl + AF154"]
+    cv = import_phenotype_data(phenotype="Cell Viability")
+    red = import_phenotype_data(phenotype="Cell Death")
+    sw = import_phenotype_data(phenotype="Migration")
+    c = import_phenotype_data(phenotype="Island")
 
-    _, phosR_tumor, _ = preprocess_phospho(phos)
-    protR, protR_tumor, _ = preprocess_data(prot)
-    _, rnaR_tumor, _ = preprocess_data(rna)
-    y = formatPhenotypesForModeling(cv, red, sw, c)
+    ax, f = getSetup((11, 17), (8, 5))
+    cv_f, red_f, sw_f, ci_f = [], [], [], []
+    for i, line in enumerate(lines):
+        cv_c = IndividualTimeCourses(cv, 96, lines, tr1, tr2, "fold-change confluency", TimePointFC=24, TreatmentFC=False, plot=line, ax_=ax[i], ylim=[0.8, 10], out=True)
+        cv_c["Lines"] = line
+        cv_f.append(cv_c)
+        red_c = IndividualTimeCourses(red, 96, lines, tr1, tr2, "fold-change apoptosis (YOYO+)", TimePointFC=24, plot=line, ax_=ax[i + 10], ylim=[0, 13], out=True)
+        red_c["Lines"] = line
+        red_f.append(red_c)
+        sw_c = IndividualTimeCourses(sw, 24, lines, tr1, tr2, "RWD %", plot=line, ax_=ax[i + 20], out=True)
+        sw_c["Lines"] = line
+        sw_f.append(sw_c)
+        ci_c = PlotRipleysK(mutant=mutants[i], ax=ax[i + 30], title=line, out=True)
+        ci_c["Lines"] = line
+        ci_f.append(ci_c)
 
-    pmut = pd.read_csv("/home/marcc/AXLomics/msresist/data/MS/CPTAC/Patient_Mutations.csv")
-    pmut = pmut[~pmut["Sample.ID"].str.contains("IR")]
-
-    plot_AXLlevels_byStage(protR, pmut, ax[:2])
-    # Phenotypes diagram
-    ax[1].axis("off")
-
-    # plot_GSEA_term(rna, prot, term="CORDENONSI YAP CONSERVED SIGNATURE") gseapy.gseaplot doesn't have an ax argument, add plot in illustrator    
-    ax[2].axis("off")
-
-    phos = phosR_tumor
-    prot = protR_tumor
-    rna = rnaR_tumor
-    # Heatmaps
-    plot_phenotype_heatmap(ax[2], y[["Lines", "Treatment", "Viability"]])
-    plot_phenotype_heatmap(ax[3], y[["Lines", "Treatment", "Apoptosis"]])
-    plot_phenotype_heatmap(ax[4], y[["Lines", "Treatment", "Migration"]])
-    plot_phenotype_heatmap(ax[5], y[["Lines", "Treatment", "Island"]])
-
-    pair_corr(rna, "AXL", "CYR61", ax=ax[3])
-    pair_corr(rna, "AXL", "CTGF", ax=ax[4])
-
-    phosHL = make_AXL_categorical_data(phos, prot, phospho=True, by_thres=True)
-    sns.violinplot(data=phosHL.loc["YAP1", "S382-p"], x="AXL", y="p-site signal", color="white", ax=ax[5]).set_ylabel("YAP1 S382-p norm log(p-signal)")
-
-    plot_YAPlevels_byStage(phosR_tumor, pmut, ax[6:8])
-
-    protHL = make_AXL_categorical_data(prot, prot, phospho=False, by_thres=True)
-    rnaHL = make_AXL_categorical_data(rna, prot, phospho=False, by_thres=True)
-    sns.violinplot(data=rnaHL.loc["TWIST1"], x="AXL", y="log(expression)", color="white", ax=ax[0])
-    sns.violinplot(data=rnaHL.loc["VIM"], x="AXL", y="log(expression)", color="white", ax=ax[1])
-    sns.violinplot(data=rnaHL.loc["CDH11"], x="AXL", y="log(expression)", color="white", ax=ax[2])
-    sns.violinplot(data=protHL.loc["CDH11"], x="AXL", y="log(expression)", color="white", ax=ax[3])
     # PCA phenotypes
     y = formatPhenotypesForModeling(cv, red, sw, c)
     plotPCA(ax[6:8], y, 3, ["Lines", "Treatment"], hue_scores="Lines", style_scores="Treatment", legendOut=True)
@@ -84,32 +66,35 @@ def makeFigure():
     return f
 
 
-def plot_phenotype_heatmap(ax, d):
-    """Make phenotype heatmap"""
-    phe = pd.concat([d.iloc[:10, 0], d.iloc[:10, -1], d.iloc[10:20, -1], d.iloc[20:, -1]], axis=1)
-    phe.columns = ["Cell Lines", "UT", "Erlotinib", "Erl + AF154"]
-    sns.heatmap(phe.set_index("Cell Lines"), robust=True, cmap="bwr", ax=ax)
-    ax.set_yticklabels(phe["Cell Lines"], rotation=0)
+def make_pval_table_AXLphenotypes(cv_f, red_f, sw_f, ci_f):
+    cvF = pd.concat(cv_f).rename(columns={"fold-change confluency":"Data"})
+    redF = pd.concat(red_f).rename(columns={"fold-change apoptosis (YOYO+)":"Data"})
+    swF = pd.concat(sw_f).rename(columns={"RWD %":"Data"})
+    ciF = pd.concat(ci_f).rename(columns={"Condition":"Treatments", "K Estimate":"Data"})
+    ciF["Treatments"] = ciF["Treatments"].replace("AF154 + Erlotinib", "Erl + AF154")
 
+    ds = [cvF, redF, swF, ciF]
+    dsL = ["Cell Viability", "Apoptosis", "Migration", "Island"]
 
-def pval_phenotypes(data, pheno, lines, all_lines, timepoint, fc=True):
-    "For each phenotype Test: E vs EA across all cell lines and per cell line."
-    out = np.empty(len(lines))
-    for idx, line in enumerate(lines):
-        aes = []
-        es = []
-        for d in data:
-            d = d.set_index("Elapsed")
-            l = d.loc[:, d.columns.str.contains(line)]
-            aes.extend(l.loc[:, l.columns.str.contains("-A/E")].loc[timepoint].values)
-            es.extend(l.loc[:, l.columns.str.contains("-E")].loc[timepoint].values)
-        out[idx] = ttest_ind(es, aes)[1]
+    df = pd.DataFrame()
+    pvals = []
+    lines = []
+    phe = []
+    for ii, d in enumerate(ds):
+        for l in list(set(d["Lines"])):
+            cl = d[d["Lines"] == l]
+            c_erl = cl[cl["Treatments"] == "Erlotinib"].loc[:, "Data"].values
+            c_ea = cl[cl["Treatments"] == "Erl + AF154"].loc[:, "Data"].values
+            pvals.append(mannwhitneyu(c_erl, c_ea)[1])
+            lines.append(l)
+            phe.append(dsL[ii])
 
-    table = pd.DataFrame()
-    table["Cell Line"] = all_lines
-    table[pheno] = out
+    df["Cell Line"] = lines
+    df["Phenotype"] = phe
+    df["p-value"] = pvals
 
-    return table.set_index("Cell Line")
+    return df.sort_values(by=["Phenotype", "Cell Line"])
+
 
 
 def Island_pvals(c, all_lines):
@@ -133,37 +118,20 @@ def Island_pvals(c, all_lines):
 
 
 
-# —————Supplement—————:
 
-# mutants = ['PC9', 'KO', 'KIN', 'KD', 'M4', 'M5', 'M7', 'M10', 'M11', 'M15']
-# all_lines = ["WT", "KO", "KI", "KD", "Y634F", "Y643F", "Y698F", "Y726F", "Y750F", "Y821F"]
 
-# # Cell Viability
-# mutants = ['PC9', 'AXL KO', 'Kin', 'Kdead', 'M4', 'M5', 'M7', 'M10', 'M11', 'M15']
-# cv[-1]["Elapsed"] = cv[-2]["Elapsed"]
-# cv_pvals = pval_phenotypes(cv, "Cell Viability", mutants, all_lines, int(96))
+# pair_corr(rna, "AXL", "CYR61", ax=ax[3])
+# pair_corr(rna, "AXL", "CTGF", ax=ax[4])
 
-# # Cell Death"
-# red[-1]["Elapsed"] = red[-2]["Elapsed"]
-# cd_pvals = pval_phenotypes(red, "Cell Death", mutants, all_lines, int(96))
+# phosHL = make_AXL_categorical_data(phos, prot, phospho=True, by_thres=True)
+# sns.violinplot(data=phosHL.loc["YAP1", "S382-p"], x="AXL", y="p-site signal", color="white", ax=ax[5]).set_ylabel("YAP1 S382-p norm log(p-signal)")
 
-# # Cell Migration
-# mutants = ['PC9', 'KO', 'KIN', 'KD', 'M4', 'M5', 'M7', 'M10', 'M11', 'M15']
-# sw_pvals = pval_phenotypes(sw, "Migration", mutants, all_lines, int(10))
+# plot_YAPlevels_byStage(phosR_tumor, pmut, ax[6:8])
 
-# # Cell Island
-# c_brs = DataFrameRipleysK('48hrs', mutants, ['ut', 'e', 'ae'], 6, np.linspace(1, 14.67, 1), merge=False).reset_index().set_index("Mutant")
-# i_pvals = Island_pvals(c_brs, all_lines)
+# protHL = make_AXL_categorical_data(prot, prot, phospho=False, by_thres=True)
+# rnaHL = make_AXL_categorical_data(rna, prot, phospho=False, by_thres=True)
+# sns.violinplot(data=rnaHL.loc["TWIST1"], x="AXL", y="log(expression)", color="white", ax=ax[0])
+# sns.violinplot(data=rnaHL.loc["VIM"], x="AXL", y="log(expression)", color="white", ax=ax[1])
+# sns.violinplot(data=rnaHL.loc["CDH11"], x="AXL", y="log(expression)", color="white", ax=ax[2])
+# sns.violinplot(data=protHL.loc["CDH11"], x="AXL", y="log(expression)", color="white", ax=ax[3])
 
-# pvals = pd.concat([cv_pvals, cd_pvals, sw_pvals, i_pvals], axis=1)
-
-# sns.heatmap(pvals, vmax=(0.051))
-
-# pval = []
-# for p in y.columns[2:]:
-#     e = y.set_index("Treatment").loc["-E"][p].values
-#     ea =  y.set_index("Treatment").loc["A/E"][p].values
-#     pval.append(ttest_ind(e, ea)[1])
-
-# y = y[y["Treatment"] == "A/E"].drop("Treatment", axis=1).set_index("Lines")
-# sns.clustermap(y, robust=True, cmap="bwr", figsize=(7, 5))

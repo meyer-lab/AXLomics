@@ -9,6 +9,7 @@ import statannot
 from bioinfokit import visuz
 from scipy.stats import mannwhitneyu
 from statsmodels.stats.multitest import multipletests
+from .RNAseq import YAP_gene_sets
 
 
 def preprocess_data(X):
@@ -200,27 +201,22 @@ def add_feature(X_tumor, meta, features):
     return df
 
 
-def plot_GSEA_term(rna, prot, term="CORDENONSI YAP CONSERVED SIGNATURE"):
-    rnaHL = make_AXL_categorical_data(rna, prot, phospho=False, by_samples=True)
-    d = rnaHL
-    samples = [c.split("_")[0] for c in list(d.columns)]
+def CPTAC_GSEA_YAP_by_AXLprot(rnaR_tumor, protR_tumor):
+    rnaHL = make_AXL_categorical_data(rnaR_tumor, protR_tumor, phospho=False, by_samples=True)
+
+    samples = [c.split("_")[0] for c in list(rnaHL.columns)]
 
     gs_res = gp.gsea(
-                data=d.reset_index(), 
-                gene_sets='MSigDB_Oncogenic_Signatures', 
-                cls=samples, 
-                # set permutation_type to phenotype if samples >=15s
-                permutation_type='phenotype',
-                permutation_num=100, 
-                outdir='/home/marcc/AXLomics/msresist/data/RNAseq/GSEA/CPTAC_gsea/mRNA_OGS',
-                method='signal_to_noise',
-                processes=4, seed= 7,
-                format='png'
-                )
-
-    gp.gseaplot(rank_metric=gs_res.ranking,
-         term=term,
-         **gs_res.results[term])
+                    data=rnaHL.reset_index(),
+                    gene_sets=YAP_gene_sets(),
+                    cls=samples, 
+                    permutation_type='phenotype',
+                    permutation_num=100, 
+                    method='signal_to_noise',
+                    processes=4, 
+                    seed= 7,
+                    )
+    return gs_res
 
 
 def plot_AXLlevels_byStage(X, pmut, ax):

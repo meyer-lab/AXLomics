@@ -4,6 +4,7 @@ import math
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from scipy.stats import ttest_ind
 from astropy.stats import RipleysKEstimator
 
 
@@ -186,27 +187,59 @@ def shortest_distances(file_df, cell_tuple):
     return shortest_n_distances, points.shape[0]
 
 
-def PlotRipleysK(folder, mutant, treatments, replicates, ax, title=False, out=False):
+def import_island_data(folder, mutant, treatments, replicates):
     """Plots the Ripley's K Estimate in comparison to the Poisson for a range of radii"""
     Kest = RipleysKEstimator(area=158.8761, x_max=14.67, y_max=10.83, x_min=0, y_min=0)
     r = np.linspace(0, 5, 51)
     r_for_df = r
     poisson = Kest.poisson(r)
     poisson_for_df = poisson
+
     # Done 5 times to create total of 6 to match 6 replicates
     for _ in range(5):
         poisson_for_df = np.hstack((poisson_for_df, poisson))
         r_for_df = np.hstack((r_for_df, r))
     data = np.vstack((r_for_df, poisson_for_df))
+
     for treatment in treatments:
         reps = ripleys_import(replicates, folder, mutant, treatment)
         treat_array = treat_array_func(reps, Kest, r, poisson)
         data = np.vstack((data, treat_array))
+
     df = pd.DataFrame(data).T
     df.columns = ["Radii", "Poisson", "Untreated", "Erlotinib", "AF154 + Erlotinib"]
     df = pd.melt(df, ["Radii"])
     df.columns = ["Radii", "Condition", "K Estimate"]
-    sns.lineplot(x="Radii", y="K Estimate", hue="Condition", data=df, errorbar=('ci', 68), ax=ax)
+    df.insert(0, "PC9 Cell Line", mutant)
+
+    return df
+
+
+def island_pvals_table(c, all_lines):
+    c = c.set_index("PC9 Cell Line")
+    mutants = list(set(c.index))
+    muts = []
+    out = np.empty(len(mutants))
+    for idx, m in enumerate(mutants):
+        mut = c.loc[m]
+        e = mut[mut["Condition"] == "Erlotinib"]["K Estimate"].values
+        ae = mut[mut["Condition"] == "AF154 + Erlotinib"]["K Estimate"].values
+        out[idx] = ttest_ind(e, ae)[1]
+        muts.append(m)
+
+    table = pd.DataFrame()
+    table["Cell Line"] = muts
+    table["Island"] = out
+    table = table.set_index("Cell Line")
+    table = table.rename(index={"M7": "Y698F", "M4": "Y634F", "M5": "Y643F", "M10":"Y726F", "M11":"Y750F", "M15": "Y821F", "PC9": "WT", "KIN": "KI"})
+
+    return table.T[all_lines].T
+
+
+def PlotRipleysK(ax , mutant, out=False, title=None):
+    """Plots the Ripley's K Estimate in comparison to the Poisson for a range of radii"""
+    island_data = import_island_data("48hrs", mutant, ["ut", "e", "ae"], 6)
+    sns.lineplot(x="Radii", y="K Estimate", hue="Condition", data=island_data, errorbar=('ci', 68), ax=ax)
     ax.set_xlim(0, 2.5)
     ax.legend(prop={'size': 8})
     if title:
@@ -214,7 +247,7 @@ def PlotRipleysK(folder, mutant, treatments, replicates, ax, title=False, out=Fa
     else:
         ax.set_title(mutant)
     if out:
-        return df
+        return island_data
 
 
 def BarPlotRipleysK(ax, folder, mutants, xticklabels, treatments, legendlabels, replicates, r, colors, TreatmentFC=False, ylabel=False):

@@ -111,6 +111,7 @@ def plotStripActualVsPred(ax, n_components, Xs, Y, models, size=10, type="strip"
     elif type == "bar":
         sns.barplot(x="Phenotype", y="r-score (Actual vs Predicted)", data=res, ax=ax, hue="Model")
     ax.legend(prop={'size': 8})
+    ax.tick_params(axis='x', rotation=45)
 
 
 def plotScoresLoadings(ax, model, X, Y, ncl, treatments, pcX=1, pcY=2, data="clusters", annotate=True, spacer=0.05):
