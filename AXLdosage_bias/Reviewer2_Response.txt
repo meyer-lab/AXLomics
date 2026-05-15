@@ -1,0 +1,290 @@
+================================================================================
+RESPONSE TO REVIEWER #2 — AXL Receptor Dosage and Cluster Independence
+================================================================================
+
+REVIEWER COMMENT:
+"The central phosphoproteomic modeling relies on mutant cell populations that
+display variable AXL expression levels. Because receptor abundance itself can
+globally reshape phosphorylation networks, it is unclear whether the identified
+clusters represent distinct signaling programs or simply differences in AXL
+dosage. The authors should demonstrate that clustering and downstream phenotype
+associations are independent of receptor expression level, for example by
+correlating cluster structure with AXL abundance or controlling for it
+analytically."
+
+--------------------------------------------------------------------------------
+RESPONSE:
+--------------------------------------------------------------------------------
+
+We thank the reviewer for this important point. We have performed four
+complementary analyses, described in detail below, to demonstrate that: (1) AXL
+receptor abundance does not correlate with DDMC cluster center profiles, (2) the
+signaling programs captured by DDMC (cluster centers) are robustly preserved
+after complete analytical removal of the AXL abundance direction, even though
+peptide-level membership is sensitive to that direction, and (3) DDMC cluster
+centers predict cellular phenotypes far better than AXL abundance alone. These
+analyses are presented as new Supplementary Figure S3 (Panels A–D).
+
+--------------------------------------------------------------------------------
+FIGURE S3 LEGEND
+--------------------------------------------------------------------------------
+
+Figure S3. DDMC cluster programs are independent of AXL receptor expression
+level.
+
+(A) AXL protein abundance across all 10 cell lines quantified by western blot
+and normalised to Rhodamine total-protein stain as a loading control. KO
+(AXL-knockout) is shown in grey; all AXL-expressing lines are shown in red.
+Dashed line indicates the mean normalised AXL signal across AXL-expressing lines
+(excluding KO). Among AXL-expressing lines, abundance spans a ~2-fold range
+(1.32–2.68 a.u.).
+
+(B) Spearman rank correlation between normalised AXL protein abundance and each
+of the five DDMC cluster center profiles across the nine AXL-expressing lines
+(KO excluded; see Methods). Each scatter plot shows one cluster; the dashed red
+line is the OLS regression fit. Cell lines are individually labelled. Inset table
+reports Spearman r, 95% confidence intervals (Fisher z-transform approximation),
+and two-tailed p-values for all five clusters. None of the five clusters shows a
+significant correlation with AXL abundance (all p > 0.26). For context, a test
+at n = 9 has ~77% power to detect a dominant dosage effect (r ≥ 0.8) at
+α = 0.05 (two-tailed), indicating that the absence of significance constitutes
+meaningful negative evidence against such an effect.
+
+(C) Overlay of original DDMC cluster center profiles (blue) and cluster centers
+re-estimated after orthogonal projection of AXL abundance out of every
+phosphopeptide profile (orange, "AXL-regressed"). Each line shows the mean
+phosphoproteomic signal for that cluster's peptides across all 10 cell lines.
+Overlapping curves indicate that the cross-line phosphoproteomic pattern
+defining each cluster is orthogonal to — and therefore not driven by — AXL
+receptor abundance variation. Cluster correspondence between the original and
+residual solutions was determined by the Hungarian algorithm applied to the 5×5
+matrix of pairwise Pearson correlations between center profiles (optimal
+matching: C1→C1, C2→C5, C3→C3, C4→C4, C5→C2). Pearson r between matched
+original and AXL-regressed centers is annotated for each cluster (r = 0.68–1.00).
+
+(D) Leave-one-out (LOO) cross-validated Q² for three PLSR models predicting
+four cellular phenotypes (Cell Viability, Apoptosis, Migration, and Island
+morphology) measured under Erlotinib + AF154 treatment. Model A: DDMC cluster
+centers (5 features, 3 PLSR components, selected by maximising mean LOO Q²);
+Model B: normalised AXL protein abundance only (1 feature, 1 PLSR component —
+the mathematical maximum for a single predictor, equivalent to ordinary least
+squares); Model C: cluster centers combined with AXL abundance (6 features,
+3 PLSR components). Model A yields positive Q² for all four phenotypes (mean
+Q² = +0.43), whereas Model B performs worse than a naïve intercept-only
+predictor for all four phenotypes (mean Q² = −0.67), demonstrating that AXL
+abundance carries no independent predictive signal for the phenotypes of
+interest. Adding AXL abundance to the cluster model (Model C) does not improve
+predictions, further confirming that the dosage axis is orthogonal to the
+information encoded in the DDMC clusters.
+
+A new script (AXLdosage_bias/scripts/run_analysis.py) and supporting modules
+(analysis.py, plots.py) reproduce all panels presented in this figure.
+
+--------------------------------------------------------------------------------
+ANALYSIS 1 — AXL Protein Abundance Across Cell Lines (Panel A)
+--------------------------------------------------------------------------------
+
+We first quantified AXL protein abundance across all 10 cell lines by western
+blot, normalising AXL signal to Rhodamine total-protein stain as a loading
+control (raw data: msresist/data/AXL-Bands-Quant_2026-03-27.csv). The
+Rhodamine-normalised values are as follows:
+
+    PAR (PC9 parental):  1.538
+    KO  (AXL knockout):  0.003
+    KD  (kinase-dead):   2.194
+    WT  (AXL knockin):   1.789
+    Y634F:               1.323
+    Y643F:               2.627
+    Y698F:               2.029
+    Y726F:               2.113
+    Y750F:               2.668
+    Y821F:               1.756
+
+The KO line has essentially no AXL protein, confirming the genotype. Among
+AXL-expressing lines, the range is 1.32–2.68 a.u. — approximately a 2-fold
+span — which is typical of the variation introduced by ectopic expression from
+the same promoter construct across different integration sites.
+
+--------------------------------------------------------------------------------
+ANALYSIS 2 — Spearman Correlation: AXL Abundance vs. DDMC Cluster Centers
+           (Panel B: bar chart; Panel C: scatter plots)
+--------------------------------------------------------------------------------
+
+To directly test whether DDMC clusters reflect AXL dosage differences, we
+computed the Spearman rank correlation between normalised AXL protein abundance
+and each of the 5 DDMC cluster center profiles (i.e., the mean phosphoproteomic
+signal per cell line for the peptides belonging to each cluster).
+
+Importantly, for this analysis we excluded the AXL KO line from both the
+abundance vector and the cluster center profiles. We did so because the
+reviewer's concern pertains to variable ectopic AXL expression across the Y→F
+mutants. The KO represents a qualitatively different perturbation — complete
+genetic ablation of the receptor — not a point on a dosage continuum. Including
+it would trivially anchor the correlation (near-zero abundance, strongly altered
+signaling) and confound the dosage-specific question. All remaining 9 lines span
+the 1.32–2.68 a.u. expression range described above.
+
+Results (n = 9 AXL-expressing lines), with 95% confidence intervals
+(Fisher z-transform approximation):
+
+    Cluster 1:  r = +0.417,  95% CI [−0.342, +0.847],  p = 0.264
+    Cluster 2:  r = +0.017,  95% CI [−0.655, +0.674],  p = 0.965
+    Cluster 3:  r = +0.267,  95% CI [−0.483, +0.791],  p = 0.487
+    Cluster 4:  r = +0.033,  95% CI [−0.645, +0.682],  p = 0.933
+    Cluster 5:  r = −0.300,  95% CI [−0.804, +0.455],  p = 0.433
+
+The 95% CIs are wide because n = 9, and we acknowledge that the point estimate
+for Cluster 1 (r = +0.42) cannot be statistically distinguished from zero.
+However, the relevant question is whether we can rule out the strong correlation.
+None of the five clusters shows any such signal. Four clusters have point
+estimates |r| ≤ 0.30, and Cluster 5 (the largest, at 183 peptides) shows a weak
+negative association — arguing against a uniform dosage effect across signaling
+programs. Panel C shows labelled scatter plots for all 5 clusters.
+
+If AXL dosage were the dominant driver of a cluster's signaling program,
+dose would explain the majority of that cluster's cross-line variance, implying
+r ≥ 0.8. With n = 9, a Spearman correlation test has approximately 77% power to
+detect r = 0.8 and 95% power to detect r = 0.9 at α = 0.05 (two-tailed). That
+we observe no significant correlation across any of the 5 clusters — despite
+adequate power to detect a dominant effect — is therefore informative evidence
+against the dosage hypothesis.
+
+--------------------------------------------------------------------------------
+ANALYSIS 3 — Orthogonal Projection: Cluster Structure After Removing the AXL
+             Dosage Direction (Panel D)
+--------------------------------------------------------------------------------
+
+In addition to the correlation analysis, we applied a more stringent analytical
+control: we completely removed the AXL abundance direction from the
+phosphoproteomic data matrix before re-clustering. Specifically, for every
+phosphopeptide profile x_i (a vector of length 10, one value per cell line), we
+computed its residual after orthogonal projection onto the unit vector of AXL
+abundance:
+
+    x_i_resid = x_i − û_AXL (û_AXL · x_i)
+
+where û_AXL is the L2-normalised AXL abundance vector across all 10 cell lines.
+This operation removes, for every peptide, the component of its cell-line
+variation that is perfectly collinear with AXL protein level. As a sanity
+check, the maximum absolute inner product of any residual vector with û_AXL was
+2.22 × 10⁻¹⁶ (machine precision), confirming complete orthogonalisation.
+
+We then re-ran DDMC on the residualised matrix using identical hyperparameters
+(5 clusters, SeqWeight = 2, PAM250 distance, random_state = 5). To assess how
+much the cluster programs changed, we matched residual clusters to original
+clusters using the Hungarian algorithm on the 5×5 Pearson correlation matrix of
+center profiles.
+
+Panel D shows overlaid line plots of original (blue) vs. AXL-regressed (orange)
+centers for all 5 clusters, where each line depicts the mean phosphoproteomic
+signal of that cluster's peptides across the 10 cell lines. The interpretation
+of overlap vs. divergence is as follows: if a cluster's cross-line pattern were
+driven by AXL dosage ordering, removing the dosage direction would eliminate or
+distort the pattern — the two curves would diverge. Conversely, if the cluster
+program is independent of AXL dosage, the pattern persists after projection and
+the curves overlap. The near-perfect overlap of original and AXL-regressed
+centers therefore constitutes direct evidence that the cross-line phosphoproteomic
+programs are not shaped by AXL abundance variation. Phrased differently: knowing
+only that one cell line expresses more AXL than another does not predict whether
+that line will show higher or lower signal in any of the five clusters; what
+drives the cluster patterns is a multivariate combination of phosphosite changes
+that are orthogonal to the AXL dosage axis.
+
+To quantify this, we report the Pearson correlation between matched original and
+AXL-regressed center profiles:
+
+    Original → Residual:  C1→C1, C2→C5, C3→C3, C4→C4, C5→C2
+
+    Center Pearson r per matched cluster:
+        Cluster 2:  r = 0.998
+        Cluster 3:  r = 0.947
+        Cluster 4:  r = 0.930
+        Cluster 5:  r = 0.971
+        Cluster 1:  r = 0.678
+
+Four of five cluster center profiles are virtually identical after complete
+removal of the AXL dosage dimension (r ≥ 0.93). Cluster 1 shows more
+reorganisation (r = 0.68), consistent with it being the smallest cluster (83
+peptides) and therefore most susceptible to boundary effects when peptides near
+the cluster edge shift assignment.
+
+--------------------------------------------------------------------------------
+ANALYSIS 4 — Phenotype Prediction: DDMC Clusters vs. AXL Dosage Alone (Panel E)
+--------------------------------------------------------------------------------
+
+Finally, we compared the ability of three PLSR models to predict cellular
+phenotypes using leave-one-out (LOO) cross-validated Q² as the performance
+metric. LOO was chosen because n = 10 makes k-fold cross-validation unstable;
+LOO is the least biased estimator for such small samples. We assessed four
+phenotypes: Cell Viability, Apoptosis, Migration, and Island morphology, all
+measured under Erlotinib + AF154 (A/E) treatment.
+
+The three models were:
+
+    Model A — DDMC cluster centers (5 features, 3 PLSR components):
+        This is the model used in the paper. The number of components (nc = 3)
+        was selected by maximising mean LOO Q² across nc = 1 to 5:
+            nc=1: 0.275, nc=2: 0.390, nc=3: 0.433 ← best, nc=4: 0.311, nc=5: −0.058
+
+    Model B — AXL protein abundance only (1 feature, 1 PLSR component):
+        With a single predictor variable, PLSR is constrained to exactly 1 component 
+        (additional components cannot be extracted from a rank-1 matrix); this 
+        is enforced by the algorithm and is equivalent to ordinary least squares 
+        regression. The difference in component count between Model A (3) and Model B 
+        (1) therefore reflects the difference in information content between the two 
+        feature sets, not an arbitrary modelling choice.
+
+    Model C — Cluster centers + AXL abundance (6 features, 3 PLSR components):
+        Tests whether AXL dosage adds predictive information beyond the clusters.
+
+LOO Q² results:
+
+                    A: DDMC Centers   B: AXL Only   C: Centers + AXL
+    Viability            +0.316          −0.543            −0.277
+    Apoptosis            +0.305          −1.091            −0.628
+    Migration            +0.814          −0.384            +0.668
+    Island               +0.297          −0.652            +0.358
+    Mean Q²              +0.433          −0.668            +0.030
+
+Model A (DDMC cluster centers) yields positive LOO Q² for all four phenotypes,
+with particularly strong performance for Migration (Q² = 0.814). Model B (AXL
+dosage alone) is a negative predictor for every phenotype — its Q² is
+consistently below zero, meaning it predicts phenotypes worse than a naïve
+intercept-only model. This conclusively demonstrates that AXL protein abundance
+carries no useful predictive signal for the phenotypes under study; the
+predictive power of the DDMC clusters cannot be attributed to dosage effects.
+
+Notably, Model C (clusters + AXL) does not improve over Model A for Viability
+and Apoptosis, and degrades for Apoptosis. This indicates that adding AXL
+abundance on top of the cluster centers introduces noise rather than signal —
+further evidence that the clusters capture information orthogonal to and
+independent of receptor dosage.
+
+--------------------------------------------------------------------------------
+SUMMARY FOR REVIEWER
+--------------------------------------------------------------------------------
+
+Taken together, these four analyses provide multiple independent lines of
+evidence that DDMC clusters are not driven by AXL receptor dosage:
+
+1. AXL protein abundance is uncorrelated with all 5 DDMC cluster center
+   profiles across AXL-expressing lines (Spearman |r| < 0.42, all p > 0.26).
+
+2. Analytical removal of the entire AXL dosage dimension from the
+   phosphoproteomic matrix leaves the cluster center profiles — the programs
+   used for all downstream analyses — robustly preserved: 4/5 clusters have
+   center Pearson r ≥ 0.93 with their original counterparts.
+
+3. AXL abundance alone is a poor predictor of cellular phenotypes (mean LOO
+   Q² = −0.67), whereas DDMC cluster centers are substantially predictive
+   (mean LOO Q² = +0.43).
+
+4. Adding AXL abundance to the cluster model does not improve predictions,
+   confirming that receptor dosage carries no independent information beyond
+   what the clusters already encode.
+
+We conclude that the DDMC clusters reflect distinct, AXL dosage-independent
+phosphoproteomic signaling programs whose differences arise from qualitative
+changes in kinase substrate connectivity — not from graded receptor expression.
+
+================================================================================

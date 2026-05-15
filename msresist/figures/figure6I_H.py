@@ -51,6 +51,10 @@ def makeFigure():
 
     X = Introduce_Correct_DDMC_labels(X, ddmc)
     C2_3 = X[(X["Cluster"] == 2) | (X["Cluster"] == 3)][["Cluster", "Gene", "Position", "PC9 A", "KO A"]]
+    axl_clusters_dict = {
+        2: C2_3[C2_3["Cluster"] == 2]["Gene"].tolist(),
+        3: C2_3[C2_3["Cluster"] == 3]["Gene"].tolist()
+        }
 
     cordenonsi_genes, wp4534_genes, yap_up_genes = get_YAPsignature_genes()
 
