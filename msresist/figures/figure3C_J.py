@@ -109,7 +109,7 @@ def annotate_maynard(adata):
     adata.obs["Driver mutation"] = adata.obs["Driver mutation"].replace("del19", "Exon 19del")
 
     # Load AXL signature
-    c123 = pd.read_csv("/home/creixell/AXLomics/msresist/out/results/C123.csv").dropna().iloc[:, -1].to_list()
+    c123 = pd.read_csv("/home/creixell/AXLomics/msresist/results/C123.csv").dropna().iloc[:, -1].to_list()
     sc.tl.score_genes(adata, c123, score_name="AXL signature")
     sc.tl.score_genes(TvsNAT, c123, score_name="AXL signature")
     sc.tl.score_genes(cc, c123, score_name="AXL signature")
