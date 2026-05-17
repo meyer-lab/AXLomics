@@ -1,6 +1,5 @@
-""" Clustering functions. """
+"""Clustering functions."""
 
-import warnings
 from copy import deepcopy
 import itertools
 import numpy as np
@@ -16,12 +15,21 @@ from .motifs import PSPLdict, compute_control_pssm
 
 
 class DDMC(GaussianMixture):
-    """ Cluster peptides by both sequence similarity and data behavior following an
+    """Cluster peptides by both sequence similarity and data behavior following an
     expectation-maximization algorithm. SeqWeight specifies which method's expectation step
-    should have a larger effect on the peptide assignment. """
+    should have a larger effect on the peptide assignment."""
 
-    def __init__(self, info, n_components, SeqWeight, distance_method, random_state=None):
-        super().__init__(n_components=n_components, covariance_type="diag", n_init=2, max_iter=200, tol=1e-4, random_state=random_state)
+    def __init__(
+        self, info, n_components, SeqWeight, distance_method, random_state=None
+    ):
+        super().__init__(
+            n_components=n_components,
+            covariance_type="diag",
+            n_init=2,
+            max_iter=200,
+            tol=1e-4,
+            random_state=random_state,
+        )
 
         self.info = info
         self.SeqWeight = SeqWeight
@@ -37,7 +45,7 @@ class DDMC(GaussianMixture):
             raise ValueError("Wrong distance type.")
 
     def _estimate_log_prob(self, X):
-        """ Estimate the log-probability of each point in each cluster. """
+        """Estimate the log-probability of each point in each cluster."""
         logp = super()._estimate_log_prob(X)  # Do the regular work
 
         # Add in the sequence effect
@@ -61,7 +69,9 @@ class DDMC(GaussianMixture):
 
             assert len(labels) == X.shape[0]
             for ii in range(X.shape[0]):  # X is peptides x samples
-                X[ii, self.missing_d[ii, :]] = centers[self.missing_d[ii, :], labels[ii]]
+                X[ii, self.missing_d[ii, :]] = centers[
+                    self.missing_d[ii, :], labels[ii]
+                ]
 
         super()._m_step(X, log_resp)  # Do the regular m step
 
@@ -110,12 +120,12 @@ class DDMC(GaussianMixture):
         return (dataDist, seqDist)
 
     def transform(self):
-        """ Calculate cluster averages. """
+        """Calculate cluster averages."""
         check_is_fitted(self, ["means_"])
         return self.means_.T
 
     def impute(self, X):
-        """ Impute a matching dataset. """
+        """Impute a matching dataset."""
         X = X.copy()
         labels = self.labels()  # cluster assignments
         centers = self.transform()  # samples x clusters
@@ -186,7 +196,9 @@ class DDMC(GaussianMixture):
 
         return pssms, cl_num
 
-    def predict_UpstreamKinases(self, additional_pssms=False, add_labels=False, PsP_background=True):
+    def predict_UpstreamKinases(
+        self, additional_pssms=False, add_labels=False, PsP_background=True
+    ):
         """Compute matrix-matrix similarity between kinase specificity profiles and cluster PSSMs to identify upstream kinases regulating clusters."""
         PSPLs = PSPLdict()
         PSSMs, cl_num = self.pssms(PsP_background=PsP_background)
@@ -195,7 +207,9 @@ class DDMC(GaussianMixture):
         if not isinstance(additional_pssms, bool):
             PSSMs += additional_pssms
             cl_num += add_labels
-        PSSMs = [np.delete(np.array(list(np.array(mat))), [5, 10], axis=1) for mat in PSSMs]  # Remove P0 and P+5 from pssms
+        PSSMs = [
+            np.delete(np.array(list(np.array(mat))), [5, 10], axis=1) for mat in PSSMs
+        ]  # Remove P0 and P+5 from pssms
 
         a = np.zeros((len(PSPLs), len(PSSMs)))
         for ii, spec_profile in enumerate(PSPLs.values()):
@@ -208,21 +222,21 @@ class DDMC(GaussianMixture):
         return table
 
     def predict(self):
-        """ Provided the current model parameters, predict the cluster each peptide belongs to. """
+        """Provided the current model parameters, predict the cluster each peptide belongs to."""
         check_is_fitted(self, ["scores_"])
         return np.argmax(self.scores_, axis=1)
 
     def labels(self):
-        """ Find cluster assignment with highest likelihood for each peptide. """
+        """Find cluster assignment with highest likelihood for each peptide."""
         return self.predict() + 1
 
     def score(self):
-        """ Generate score of the fitting. """
+        """Generate score of the fitting."""
         check_is_fitted(self, ["lower_bound_"])
         return self.lower_bound_
 
     def get_params(self, deep=True):
-        """ Returns a dict of the estimator parameters with their values. """
+        """Returns a dict of the estimator parameters with their values."""
         dictt = super().get_params(deep=deep)
         dictt["info"] = self.info
         dictt["SeqWeight"] = self.SeqWeight
@@ -244,5 +258,7 @@ class DDMC(GaussianMixture):
 
         else:
             for ii in range(self.n_components):
-                cl_idx = [i for i in range(len(self.labels())) if self.labels()[i] == ii + 1]
+                cl_idx = [
+                    i for i in range(len(self.labels())) if self.labels()[i] == ii + 1
+                ]
                 print(np.mean(self.scores_[cl_idx, ii]))

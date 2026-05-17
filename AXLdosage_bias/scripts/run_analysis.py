@@ -11,8 +11,10 @@ import sys
 import numpy as np
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
-AXLOMICS_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-FIGURES_DIR   = os.path.join(AXLOMICS_ROOT, "AXLdosage_bias", "figures")
+AXLOMICS_ROOT = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
+FIGURES_DIR = os.path.join(AXLOMICS_ROOT, "AXLdosage_bias", "figures")
 
 os.chdir(AXLOMICS_ROOT)
 sys.path.insert(0, AXLOMICS_ROOT)
@@ -21,7 +23,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 os.makedirs(FIGURES_DIR, exist_ok=True)
 
 import matplotlib
-matplotlib.use("Agg")   # non-interactive backend — no display needed
+
+matplotlib.use("Agg")  # non-interactive backend — no display needed
 
 import analysis
 import plots
@@ -48,15 +51,15 @@ axl_vec = axl_wb.values.astype(float)
 # clustering in the Y→F mutants. KO cells have zero AXL — a qualitatively
 # different perturbation — and including them would trivially inflate correlations.
 print("\n=== 3. Spearman r: AXL Abundance vs Cluster Centers (KO excluded) ===")
-ko_idx       = analysis.MS_ORDER.index("KO")
-keep_mask    = np.array([i != ko_idx for i in range(len(analysis.MS_ORDER))])
-ms_order_noKO  = [l for l in analysis.MS_ORDER if l != "KO"]
-axl_vec_noKO   = axl_vec[keep_mask]
-centers_noKO   = centers[keep_mask, :]
+ko_idx = analysis.MS_ORDER.index("KO")
+keep_mask = np.array([i != ko_idx for i in range(len(analysis.MS_ORDER))])
+ms_order_noKO = [l for l in analysis.MS_ORDER if l != "KO"]
+axl_vec_noKO = axl_vec[keep_mask]
+centers_noKO = centers[keep_mask, :]
 
 corrs, pvals = analysis.compute_spearman_corrs(axl_vec_noKO, centers_noKO)
 for cl, (r, p) in enumerate(zip(corrs, pvals)):
-    print(f"  Cluster {cl+1}: r = {r:+.3f}, p = {p:.3f}")
+    print(f"  Cluster {cl + 1}: r = {r:+.3f}, p = {p:.3f}")
 n_high = sum(abs(r) >= 0.6 for r in corrs)
 print(f"  → {5 - n_high}/5 clusters have |r| < 0.6 with AXL dosage (none significant)")
 
@@ -71,12 +74,17 @@ ari = analysis.compute_ari(labels_orig, labels_resid)
 print(f"  Adjusted Rand Index (original vs. AXL-regressed): {ari:.3f}")
 print("  (ARI = 1.0 → identical; ARI = 0 → chance-level)")
 
-centers_resid_perm, row_ind, col_ind, pearson_r = analysis.match_clusters(centers, centers_resid)
-print(f"  Cluster correspondence (orig → resid): {dict(zip((row_ind+1).tolist(), (col_ind+1).tolist()))}")
-print(f"  Matched center Pearson r: {[round(r,3) for r in pearson_r]}")
+centers_resid_perm, row_ind, col_ind, pearson_r = analysis.match_clusters(
+    centers, centers_resid
+)
+print(
+    f"  Cluster correspondence (orig → resid): {dict(zip((row_ind + 1).tolist(), (col_ind + 1).tolist()))}"
+)
+print(f"  Matched center Pearson r: {[round(r, 3) for r in pearson_r]}")
 
-plots.panel_d_center_comparison(centers, centers_resid_perm, pearson_r,
-                                analysis.MS_ORDER, ari, FIGURES_DIR)
+plots.panel_d_center_comparison(
+    centers, centers_resid_perm, pearson_r, analysis.MS_ORDER, ari, FIGURES_DIR
+)
 print("  → Panel D saved.")
 
 # ── 5. PLSR Q² comparison ─────────────────────────────────────────────────────
@@ -96,10 +104,14 @@ q2_C = q2_df["C: Centers + AXL"].values
 print("\n" + "=" * 65)
 print("SUMMARY — DDMC Cluster Independence from AXL Receptor Dosage")
 print("=" * 65)
-print(f"  AXL range (non-KO): {axl_wb.drop('KO').min():.2f}–{axl_wb.drop('KO').max():.2f} a.u.")
-print(f"  5/5 clusters: all Spearman |r| < 0.6, all p > 0.1")
+print(
+    f"  AXL range (non-KO): {axl_wb.drop('KO').min():.2f}–{axl_wb.drop('KO').max():.2f} a.u."
+)
+print("  5/5 clusters: all Spearman |r| < 0.6, all p > 0.1")
 print(f"  ARI = {ari:.3f} (original vs. AXL-regressed clustering)")
 print(f"  Matched center Pearson r = {min(pearson_r):.2f}–{max(pearson_r):.2f}")
-print(f"  Mean LOO Q²:  A (DDMC) = {q2_A.mean():+.3f}  |  B (AXL only) = {q2_B.mean():+.3f}  |  C (both) = {q2_C.mean():+.3f}")
-print(f"  → Model A outperforms Model B for all 4 phenotypes.")
+print(
+    f"  Mean LOO Q²:  A (DDMC) = {q2_A.mean():+.3f}  |  B (AXL only) = {q2_B.mean():+.3f}  |  C (both) = {q2_C.mean():+.3f}"
+)
+print("  → Model A outperforms Model B for all 4 phenotypes.")
 print(f"\nFigures saved to: {FIGURES_DIR}")

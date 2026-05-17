@@ -1,4 +1,4 @@
-""" PCA functions """
+"""PCA functions"""
 
 import pandas as pd
 import numpy as np
@@ -11,7 +11,7 @@ from sklearn.metrics import r2_score
 
 
 def pca_dfs(scores, loadings, df, n_components, sIDX):
-    """ build PCA scores and loadings data frames. """
+    """build PCA scores and loadings data frames."""
     dScor = pd.DataFrame()
     dLoad = pd.DataFrame()
     for i in range(n_components):
@@ -25,8 +25,20 @@ def pca_dfs(scores, loadings, df, n_components, sIDX):
     return dScor, dLoad
 
 
-def plotPCA(ax, d, n_components, scores_ind, hue_scores=None, style_scores=None, size_dots=100, pvals=None, style_load=None, legendOut=False, quadrants=True):
-    """ Plot PCA scores and loadings. """
+def plotPCA(
+    ax,
+    d,
+    n_components,
+    scores_ind,
+    hue_scores=None,
+    style_scores=None,
+    size_dots=100,
+    pvals=None,
+    style_load=None,
+    legendOut=False,
+    quadrants=True,
+):
+    """Plot PCA scores and loadings."""
     pp = PCA(n_components=n_components)
     dScor_ = pp.fit_transform(d.select_dtypes(include=["float64"]))
     dLoad_ = pp.components_
@@ -34,36 +46,83 @@ def plotPCA(ax, d, n_components, scores_ind, hue_scores=None, style_scores=None,
     varExp = np.round(pp.explained_variance_ratio_, 2)
 
     # Scores
-    sns.scatterplot(x="PC1", y="PC2", data=dScor_, hue=hue_scores, style=style_scores, ax=ax[0], **{"linewidth": 0.5, "edgecolor": "k"}, s=size_dots)
+    sns.scatterplot(
+        x="PC1",
+        y="PC2",
+        data=dScor_,
+        hue=hue_scores,
+        style=style_scores,
+        ax=ax[0],
+        **{"linewidth": 0.5, "edgecolor": "k"},
+        s=size_dots,
+    )
     ax[0].set_title("PCA Scores")
     ax[0].set_xlabel("PC1 (" + str(int(varExp[0] * 100)) + "%)", fontsize=10)
     ax[0].set_ylabel("PC2 (" + str(int(varExp[1] * 100)) + "%)", fontsize=10)
-    ax[0].legend(prop={'size': 8})
+    ax[0].legend(prop={"size": 8})
     if legendOut:
-        ax[0].legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0, labelspacing=0.2, prop={'size': 8})
+        ax[0].legend(
+            bbox_to_anchor=(1.05, 1),
+            loc=2,
+            borderaxespad=0,
+            labelspacing=0.2,
+            prop={"size": 8},
+        )
 
     # Loadings
     if isinstance(pvals, np.ndarray):
         dLoad_["p-value"] = pvals
-        sns.scatterplot(x="PC1", y="PC2", data=dLoad_, hue="p-value", style=style_load, ax=ax[1], **{"linewidth": 0.5, "edgecolor": "k"}, s=100)
+        sns.scatterplot(
+            x="PC1",
+            y="PC2",
+            data=dLoad_,
+            hue="p-value",
+            style=style_load,
+            ax=ax[1],
+            **{"linewidth": 0.5, "edgecolor": "k"},
+            s=100,
+        )
     else:
-        sns.scatterplot(x="PC1", y="PC2", data=dLoad_, style=style_load, ax=ax[1], **{"linewidth": 0.5, "edgecolor": "k"}, s=100)
+        sns.scatterplot(
+            x="PC1",
+            y="PC2",
+            data=dLoad_,
+            style=style_load,
+            ax=ax[1],
+            **{"linewidth": 0.5, "edgecolor": "k"},
+            s=100,
+        )
 
     ax[1].set_title("PCA Loadings")
     ax[1].set_xlabel("PC1 (" + str(int(varExp[0] * 100)) + "%)", fontsize=10)
     ax[1].set_ylabel("PC2 (" + str(int(varExp[1] * 100)) + "%)", fontsize=10)
-    ax[1].legend(prop={'size': 8})
+    ax[1].legend(prop={"size": 8})
     for j, txt in enumerate(dLoad_.index):
-        ax[1].annotate(txt, (dLoad_["PC1"][j] + 0.001, dLoad_["PC2"][j] + 0.001), fontsize=10)
+        ax[1].annotate(
+            txt, (dLoad_["PC1"][j] + 0.001, dLoad_["PC2"][j] + 0.001), fontsize=10
+        )
 
     if quadrants:
-        ax[0].axhline(0, ls='--', color='lightgrey')
-        ax[0].axvline(0, ls='--', color='lightgrey')
-        ax[1].axhline(0, ls='--', color='lightgrey')
-        ax[1].axvline(0, ls='--', color='lightgrey')
+        ax[0].axhline(0, ls="--", color="lightgrey")
+        ax[0].axvline(0, ls="--", color="lightgrey")
+        ax[1].axhline(0, ls="--", color="lightgrey")
+        ax[1].axvline(0, ls="--", color="lightgrey")
 
 
-def plotPCA_scoresORloadings(ax, d, n_components, scores_ind, hue_scores=None, style_scores=None, pvals=None, style_load=None, legendOut=False, plot="scores", annotateScores=False, size_dots=100):
+def plotPCA_scoresORloadings(
+    ax,
+    d,
+    n_components,
+    scores_ind,
+    hue_scores=None,
+    style_scores=None,
+    pvals=None,
+    style_load=None,
+    legendOut=False,
+    plot="scores",
+    annotateScores=False,
+    size_dots=100,
+):
     """Plot PCA scores only"""
     pp = PCA(n_components=n_components)
     dScor_ = pp.fit_transform(d.select_dtypes(include=["float64"]).values)
@@ -73,33 +132,69 @@ def plotPCA_scoresORloadings(ax, d, n_components, scores_ind, hue_scores=None, s
 
     # Scores
     if plot == "scores":
-        sns.scatterplot(x="PC1", y="PC2", data=dScor_, hue=hue_scores, style=style_scores, ax=ax, **{"linewidth": 0.5, "edgecolor": "k"}, s=size_dots)
+        sns.scatterplot(
+            x="PC1",
+            y="PC2",
+            data=dScor_,
+            hue=hue_scores,
+            style=style_scores,
+            ax=ax,
+            **{"linewidth": 0.5, "edgecolor": "k"},
+            s=size_dots,
+        )
         ax.set_title("PCA Scores")
         ax.set_xlabel("PC1 (" + str(int(varExp[0] * 100)) + "%)", fontsize=10)
         ax.set_ylabel("PC2 (" + str(int(varExp[1] * 100)) + "%)", fontsize=10)
         if legendOut:
-            ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0, labelspacing=0.2, prop={'size': 8})
+            ax.legend(
+                bbox_to_anchor=(1.05, 1),
+                loc=2,
+                borderaxespad=0,
+                labelspacing=0.2,
+                prop={"size": 8},
+            )
         if annotateScores:
             for j, txt in enumerate(d[scores_ind[0]]):
-                ax.annotate(txt, (dScor_["PC1"][j] + 0.001, dScor_["PC2"][j] + 0.001), fontsize=10)
+                ax.annotate(
+                    txt,
+                    (dScor_["PC1"][j] + 0.001, dScor_["PC2"][j] + 0.001),
+                    fontsize=10,
+                )
 
     # Loadings
     elif plot == "loadings":
         if isinstance(pvals, np.ndarray):
             dLoad_["p-value"] = pvals
-            sns.scatterplot(x="PC1", y="PC2", data=dLoad_, hue="p-value", style=style_load, ax=ax, **{"linewidth": 0.5, "edgecolor": "k"})
+            sns.scatterplot(
+                x="PC1",
+                y="PC2",
+                data=dLoad_,
+                hue="p-value",
+                style=style_load,
+                ax=ax,
+                **{"linewidth": 0.5, "edgecolor": "k"},
+            )
         else:
-            sns.scatterplot(x="PC1", y="PC2", data=dLoad_, style=style_load, ax=ax, **{"linewidth": 0.5, "edgecolor": "k"})
+            sns.scatterplot(
+                x="PC1",
+                y="PC2",
+                data=dLoad_,
+                style=style_load,
+                ax=ax,
+                **{"linewidth": 0.5, "edgecolor": "k"},
+            )
 
         ax.set_title("PCA Loadings")
         ax.set_xlabel("PC1 (" + str(int(varExp[0] * 100)) + "%)", fontsize=10)
         ax.set_ylabel("PC2 (" + str(int(varExp[1] * 100)) + "%)", fontsize=10)
         for j, txt in enumerate(dLoad_[loadings_ind]):
-            ax.annotate(txt, (dLoad_["PC1"][j] + 0.001, dLoad_["PC2"][j] + 0.001), fontsize=10)
+            ax.annotate(
+                txt, (dLoad_["PC1"][j] + 0.001, dLoad_["PC2"][j] + 0.001), fontsize=10
+            )
 
 
 def plotpca_explained(ax, data, ncomp):
-    """ Cumulative variance explained for each principal component. """
+    """Cumulative variance explained for each principal component."""
     explained = PCA(n_components=ncomp).fit(data).explained_variance_ratio_
     acc_expl = []
 
@@ -133,8 +228,12 @@ def plotpca_ScoresLoadings(ax, data, pn, ps):
     ax[0].axvline(x=0, color="0.25", linestyle="--")
 
     spacer = 0.5
-    ax[0].set_xlim([(-1 * max(np.abs(PC1_scores))) - spacer, max(np.abs(PC1_scores)) + spacer])
-    ax[0].set_ylim([(-1 * max(np.abs(PC2_scores))) - spacer, max(np.abs(PC2_scores)) + spacer])
+    ax[0].set_xlim(
+        [(-1 * max(np.abs(PC1_scores))) - spacer, max(np.abs(PC1_scores)) + spacer]
+    )
+    ax[0].set_ylim(
+        [(-1 * max(np.abs(PC2_scores))) - spacer, max(np.abs(PC2_scores)) + spacer]
+    )
 
     # Loadings
     poi = [
@@ -179,20 +278,38 @@ def plotpca_ScoresLoadings(ax, data, pn, ps):
     ax[1].axvline(x=0, color="0.25", linestyle="--")
 
     spacer = 0.05
-    ax[1].set_xlim([(-1 * max(np.abs(PC1_loadings)) - spacer), (max(np.abs(PC1_loadings)) + spacer)])
-    ax[1].set_ylim([(-1 * max(np.abs(PC2_loadings)) - spacer), (max(np.abs(PC2_loadings)) + spacer)])
+    ax[1].set_xlim(
+        [
+            (-1 * max(np.abs(PC1_loadings)) - spacer),
+            (max(np.abs(PC1_loadings)) + spacer),
+        ]
+    )
+    ax[1].set_ylim(
+        [
+            (-1 * max(np.abs(PC2_loadings)) - spacer),
+            (max(np.abs(PC2_loadings)) + spacer),
+        ]
+    )
 
 
 def plotpca_ScoresLoadings_plotly(data, title, loc=False):
-    """ Interactive PCA plot. Note that this works best by pre-defining the dataframe's
-    indices which will serve as labels for each dot in the plot. """
+    """Interactive PCA plot. Note that this works best by pre-defining the dataframe's
+    indices which will serve as labels for each dot in the plot."""
     fit = PCA(n_components=2).fit(data)
 
-    scores = pd.concat([pd.DataFrame(fit.transform(data)[:, 0]), pd.DataFrame(fit.transform(data)[:, 1])], axis=1)
+    scores = pd.concat(
+        [
+            pd.DataFrame(fit.transform(data)[:, 0]),
+            pd.DataFrame(fit.transform(data)[:, 1]),
+        ],
+        axis=1,
+    )
     scores.index = data.index
     scores.columns = ["PC1", "PC2"]
 
-    loadings = pd.concat([pd.DataFrame(fit.components_[0]), pd.DataFrame(fit.components_[1])], axis=1)
+    loadings = pd.concat(
+        [pd.DataFrame(fit.components_[0]), pd.DataFrame(fit.components_[1])], axis=1
+    )
     loadings.index = data.columns
     loadings.columns = ["PC1", "PC2"]
 
@@ -220,23 +337,28 @@ def plotpca_ScoresLoadings_plotly(data, title, loc=False):
             x=loadings["PC1"],
             y=loadings["PC2"],
             opacity=0.7,
-            text=["Protein: " + loadings.index[i][0] + "  Pos: " + loadings.index[i][1] for i in range(len(loadings.index))],
+            text=[
+                "Protein: " + loadings.index[i][0] + "  Pos: " + loadings.index[i][1]
+                for i in range(len(loadings.index))
+            ],
             marker=dict(color="crimson", size=8, line=dict(color="black", width=1)),
         ),
         row=1,
         col=2,
     )
 
-    fig.update_layout(
-        height=500,
-        width=1000,
-        showlegend=False,
-        xaxis=dict(showgrid=False),
-        yaxis=dict(showgrid=False),
-        xaxis2=dict(showgrid=False),
-        yaxis2=dict(showgrid=False),
-        title_text=title,
-    ),
+    (
+        fig.update_layout(
+            height=500,
+            width=1000,
+            showlegend=False,
+            xaxis=dict(showgrid=False),
+            yaxis=dict(showgrid=False),
+            xaxis2=dict(showgrid=False),
+            yaxis2=dict(showgrid=False),
+            title_text=title,
+        ),
+    )
     fig.update_xaxes(title_text="Principal Component 1", row=1, col=1)
     fig.update_xaxes(title_text="Principal Component 1", row=1, col=2)
     fig.update_yaxes(title_text="Principal Component 2", row=1, col=1)
@@ -268,10 +390,10 @@ def preprocess_ID(linear=False, npepts=7, FCcut=10):
 
 
 def bootPCA(d, n_components, lIDX, method="PCA", n_boots=100):
-    """ Compute PCA scores and loadings including bootstrap variance of the estimates. """
+    """Compute PCA scores and loadings including bootstrap variance of the estimates."""
     bootScor, bootLoad = [], []
-    data_headers = list(d.select_dtypes(include=['float64']).columns)
-    sIDX = list(d.select_dtypes(include=['object']).columns)
+    data_headers = list(d.select_dtypes(include=["float64"]).columns)
+    sIDX = list(d.select_dtypes(include=["object"]).columns)
     for _ in range(n_boots):
         xIDX = range(d.shape[0])
         resamp = resample(xIDX, replace=True)
@@ -287,7 +409,13 @@ def bootPCA(d, n_components, lIDX, method="PCA", n_boots=100):
         elif method == "NMF":
             varExp = []
             for i in range(1, n_components + 1):
-                red = NMF(n_components=i, max_iter=10000, solver="mu", beta_loss="frobenius", init='nndsvdar').fit(data.values)
+                red = NMF(
+                    n_components=i,
+                    max_iter=10000,
+                    solver="mu",
+                    beta_loss="frobenius",
+                    init="nndsvdar",
+                ).fit(data.values)
                 dScor = red.transform(data)
                 varExp.append(r2_score(data, red.inverse_transform(dScor)))
 
@@ -306,25 +434,64 @@ def bootPCA(d, n_components, lIDX, method="PCA", n_boots=100):
     return bootScor_m, bootScor_sd, bootLoad_m, bootLoad_sd, bootScor, varExp
 
 
-def plotBootPCA(ax, means, stds, varExp, title=False, X="PC1", Y="PC2", LegOut=False, annotate=False, colors=False):
-    """ Plot Scores and Loadings. """
-    sIDX = list(means.select_dtypes(include=['object']).columns)
+def plotBootPCA(
+    ax,
+    means,
+    stds,
+    varExp,
+    title=False,
+    X="PC1",
+    Y="PC2",
+    LegOut=False,
+    annotate=False,
+    colors=False,
+):
+    """Plot Scores and Loadings."""
+    sIDX = list(means.select_dtypes(include=["object"]).columns)
     hue = sIDX[0]
     style = None
     if len(sIDX) == 2:
         style = sIDX[1]
 
-    ax.errorbar(means[X], means[Y], xerr=stds[X], yerr=stds[Y],
-                linestyle="", elinewidth=0.2, capsize=2, capthick=0.2, ecolor='k')
+    ax.errorbar(
+        means[X],
+        means[Y],
+        xerr=stds[X],
+        yerr=stds[Y],
+        linestyle="",
+        elinewidth=0.2,
+        capsize=2,
+        capthick=0.2,
+        ecolor="k",
+    )
 
     if colors:
         pal = sns.xkcd_palette(colors)
-        p1 = sns.scatterplot(x=X, y=Y, data=means, hue=hue, style=style, ax=ax,
-                             palette=pal, markers=["o", "X", "d", "*"], **{'linewidth': .5, 'edgecolor': "k"}, s=55)
+        p1 = sns.scatterplot(
+            x=X,
+            y=Y,
+            data=means,
+            hue=hue,
+            style=style,
+            ax=ax,
+            palette=pal,
+            markers=["o", "X", "d", "*"],
+            **{"linewidth": 0.5, "edgecolor": "k"},
+            s=55,
+        )
 
     if not colors:
-        p1 = sns.scatterplot(x=X, y=Y, data=means, hue=hue, style=style, ax=ax,
-                             markers=["o", "X", "d", "*"], **{'linewidth': .5, 'edgecolor': "k"}, s=55)
+        p1 = sns.scatterplot(
+            x=X,
+            y=Y,
+            data=means,
+            hue=hue,
+            style=style,
+            ax=ax,
+            markers=["o", "X", "d", "*"],
+            **{"linewidth": 0.5, "edgecolor": "k"},
+            s=55,
+        )
 
     if LegOut:
         ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0)
@@ -332,8 +499,19 @@ def plotBootPCA(ax, means, stds, varExp, title=False, X="PC1", Y="PC2", LegOut=F
 
     if annotate:
         for idx, txt in enumerate(means[sIDX[0]]):
-            p1.text(means[X][idx], means[Y][idx], txt,
-                    horizontalalignment='left', color='black', size="xx-small", fontweight="light")
+            p1.text(
+                means[X][idx],
+                means[Y][idx],
+                txt,
+                horizontalalignment="left",
+                color="black",
+                size="xx-small",
+                fontweight="light",
+            )
 
-    ax.set_xlabel(str(X) + "(" + str(int(varExp[int(X[-1]) - 1] * 100)) + "%)", fontsize=10)
-    ax.set_ylabel(str(Y) + "(" + str(int(varExp[int(Y[-1]) - 1] * 100)) + "%)", fontsize=10)
+    ax.set_xlabel(
+        str(X) + "(" + str(int(varExp[int(X[-1]) - 1] * 100)) + "%)", fontsize=10
+    )
+    ax.set_ylabel(
+        str(Y) + "(" + str(int(varExp[int(Y[-1]) - 1] * 100)) + "%)", fontsize=10
+    )

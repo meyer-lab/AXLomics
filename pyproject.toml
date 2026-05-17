@@ -33,4 +33,5 @@ mygene = { git = "https://github.com/biothings/mygene.py.git", rev = "master" }
 dev = [
     "pytest==7.2.0",
     "pytest-cov==4.0.0",
+    "ruff>=0.15.13",
 ]
