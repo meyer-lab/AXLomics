@@ -9,7 +9,7 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "astropy==5.2",
+    "astropy==5.3.3",
     "bioinfokit>=2.1.4",
     "biopython==1.80",
     "gseapy>=1.2.1",
