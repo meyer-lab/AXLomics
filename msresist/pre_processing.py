@@ -1,4 +1,4 @@
-""" This scripts handles all the pre-processing required to merge and transform the raw mass spec biological replicates. """
+"""This scripts handles all the pre-processing required to merge and transform the raw mass spec biological replicates."""
 
 import os
 import numpy as np
@@ -13,31 +13,92 @@ path = os.path.dirname(os.path.abspath(__file__))
 
 ###-------------------------- Pre-processing MS data --------------------------###
 def preprocessing(
-    AXLwt_GF=False, AXLm_Erl=False, AXLm_ErlAF154=False, AXL_Das_DR=False, Vfilter=False, FCfilter=False, log2T=False, FCtoUT=False, rawdata=False, mc_row=True, mc_col=False, corrCut=0.5,
+    AXLwt_GF=False,
+    AXLm_Erl=False,
+    AXLm_ErlAF154=False,
+    AXL_Das_DR=False,
+    Vfilter=False,
+    FCfilter=False,
+    log2T=False,
+    FCtoUT=False,
+    rawdata=False,
+    mc_row=True,
+    mc_col=False,
+    corrCut=0.5,
 ):
-    """ Input: Raw MS bio-replicates. Output: Mean-centered merged data set.
+    """Input: Raw MS bio-replicates. Output: Mean-centered merged data set.
     1. Concatenation, 2. log-2 transformation, 3. Mean-Center, 4. Merging, 5. Fold-change,
     6. Filters: 'Vfilter' filters by correlation when 2 overlapping peptides or std cutoff if >= 3.
     Note 1: 'motifs' redefines peptide sequences as XXXXXyXXXXX which affects merging.
     Note 2: Data is converted back to linear scale before filtering so 'log2T=True' to use log-scale for analysis.
-    Note 3: CPTAC is already normalized, so: mc_row and mc_col = False """
+    Note 3: CPTAC is already normalized, so: mc_row and mc_col = False"""
     filesin = list()
 
     if AXLwt_GF:
-        filesin.append(pd.read_csv(os.path.join(path, "./data/MS/GrowthFactors/20180817_JG_AM_TMT10plex_R1_psms_raw.csv")))
-        filesin.append(pd.read_csv(os.path.join(path, "./data/MS/GrowthFactors/20190214_JG_AM_PC9_AXL_TMT10_AC28_R2_PSMs_raw.csv")))
-        filesin.append(pd.read_csv(os.path.join(path, "./data/MS/GrowthFactors/CombinedBR3_TR1&2_raw.csv")))
+        filesin.append(
+            pd.read_csv(
+                os.path.join(
+                    path,
+                    "./data/MS/GrowthFactors/20180817_JG_AM_TMT10plex_R1_psms_raw.csv",
+                )
+            )
+        )
+        filesin.append(
+            pd.read_csv(
+                os.path.join(
+                    path,
+                    "./data/MS/GrowthFactors/20190214_JG_AM_PC9_AXL_TMT10_AC28_R2_PSMs_raw.csv",
+                )
+            )
+        )
+        filesin.append(
+            pd.read_csv(
+                os.path.join(path, "./data/MS/GrowthFactors/CombinedBR3_TR1&2_raw.csv")
+            )
+        )
     if AXLm_Erl:
-        filesin.append(pd.read_csv(os.path.join(path, "./data/MS/AXL/PC9_mutants_erl_BR1_raw.csv")))
-        filesin.append(pd.read_csv(os.path.join(path, "./data/MS/AXL/PC9_mutants_erl_BR2_raw.csv")))
-        filesin.append(pd.read_csv(os.path.join(path, "./data/MS/AXL/PC9_mutants_erl_BR3_raw.csv")))
+        filesin.append(
+            pd.read_csv(os.path.join(path, "./data/MS/AXL/PC9_mutants_erl_BR1_raw.csv"))
+        )
+        filesin.append(
+            pd.read_csv(os.path.join(path, "./data/MS/AXL/PC9_mutants_erl_BR2_raw.csv"))
+        )
+        filesin.append(
+            pd.read_csv(os.path.join(path, "./data/MS/AXL/PC9_mutants_erl_BR3_raw.csv"))
+        )
     if AXLm_ErlAF154:
-        filesin.append(pd.read_csv(os.path.join(path, "./data/MS/AXL/PC9_mutants_ActivatingAb_BR1_raw_wAcc.csv")))
-        filesin.append(pd.read_csv(os.path.join(path, "./data/MS/AXL/PC9_mutants_ActivatingAb_BR3_raw_wAcc.csv")))
-        filesin.append(pd.read_csv(os.path.join(path, "./data/MS/AXL/PC9_mutants_ActivatingAb_BR4_raw_wAcc.csv")))
+        filesin.append(
+            pd.read_csv(
+                os.path.join(
+                    path, "./data/MS/AXL/PC9_mutants_ActivatingAb_BR1_raw_wAcc.csv"
+                )
+            )
+        )
+        filesin.append(
+            pd.read_csv(
+                os.path.join(
+                    path, "./data/MS/AXL/PC9_mutants_ActivatingAb_BR3_raw_wAcc.csv"
+                )
+            )
+        )
+        filesin.append(
+            pd.read_csv(
+                os.path.join(
+                    path, "./data/MS/AXL/PC9_mutants_ActivatingAb_BR4_raw_wAcc.csv"
+                )
+            )
+        )
     if AXL_Das_DR:
-        filesin.append(pd.read_csv("msresist/data/Validations/Experimental/MassSpec/06232021-DasDR_BR1_raw.csv").iloc[:, 1:])
-        filesin.append(pd.read_csv("msresist/data/Validations/Experimental/MassSpec/06232021-DasDR_BR2_raw.csv").iloc[:, 1:])
+        filesin.append(
+            pd.read_csv(
+                "msresist/data/Validations/Experimental/MassSpec/06232021-DasDR_BR1_raw.csv"
+            ).iloc[:, 1:]
+        )
+        filesin.append(
+            pd.read_csv(
+                "msresist/data/Validations/Experimental/MassSpec/06232021-DasDR_BR2_raw.csv"
+            ).iloc[:, 1:]
+        )
 
     data_headers = list(filesin[0].select_dtypes(include=["float64"]).columns)
     FCto = data_headers[0]
@@ -62,7 +123,9 @@ def preprocessing(
     if Vfilter:
         X = VFilter(X, merging_indices, data_headers, corrCut=corrCut, stdCut=0.6)
 
-    X = MergeDfbyMean(X.copy(), data_headers, merging_indices).reset_index()[merging_indices + data_headers]
+    X = MergeDfbyMean(X.copy(), data_headers, merging_indices).reset_index()[
+        merging_indices + data_headers
+    ]
 
     if FCfilter:
         X = FoldChangeFilterBasedOnMaxFC(X, data_headers, cutoff=0.40)
@@ -77,13 +140,25 @@ def preprocessing(
 
 
 def preprocessCPTAC():
-    """ Replace patient identifiers, fill NaNs, and make it compatible with current code. """
-    X = pd.read_csv(os.path.join(path, "./data/MS/CPTAC/CPTAC3_Lung_Adeno_Carcinoma_Phosphoproteome.phosphopeptide.tmt10.csv"))
+    """Replace patient identifiers, fill NaNs, and make it compatible with current code."""
+    X = pd.read_csv(
+        os.path.join(
+            path,
+            "./data/MS/CPTAC/CPTAC3_Lung_Adeno_Carcinoma_Phosphoproteome.phosphopeptide.tmt10.csv",
+        )
+    )
     d = X.iloc[:, 1:-3]
-    X = pd.concat([X.iloc[:, 0], X.iloc[:, -3:], d.loc[:, d.columns.str.contains("CPT")]], axis=1)
+    X = pd.concat(
+        [X.iloc[:, 0], X.iloc[:, -3:], d.loc[:, d.columns.str.contains("CPT")]], axis=1
+    )
     X = filter_NaNpeptides(X, cut=0.2)
 
-    n = pd.read_csv(os.path.join(path, "./data/MS/CPTAC/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.csv"))
+    n = pd.read_csv(
+        os.path.join(
+            path,
+            "./data/MS/CPTAC/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.csv",
+        )
+    )
     bi_id = list(n[~n["Broad Sample.ID"].str.contains("IR")].iloc[:, 1])
     X.columns = ["Sequence"] + list(X.columns[1:4]) + bi_id
 
@@ -91,7 +166,7 @@ def preprocessCPTAC():
 
 
 def filter_NaNpeptides(X, cut=False, tmt=False):
-    """ Filter peptides that have a given minimum percentage of completeness or number of TMT experiments. """
+    """Filter peptides that have a given minimum percentage of completeness or number of TMT experiments."""
     d = X.select_dtypes(include=["float64"])
     if cut:
         Xidx = np.count_nonzero(~np.isnan(d), axis=1) / d.shape[1] >= cut
@@ -117,37 +192,39 @@ def FindIdxValues(X):
 
 
 def MergeDfbyMean(X, values, indices):
-    """ Compute mean across duplicates. """
+    """Compute mean across duplicates."""
     return pd.pivot_table(X, values=values, index=indices, aggfunc=np.mean)
 
 
 def LinearFoldChange(X, data_headers, FCto):
-    """ Convert to linear fold-change from log2 mean-centered. """
-    X[data_headers] = pd.DataFrame(np.power(2, X[data_headers])).div(np.power(2, X[FCto]), axis=0)
+    """Convert to linear fold-change from log2 mean-centered."""
+    X[data_headers] = pd.DataFrame(np.power(2, X[data_headers])).div(
+        np.power(2, X[FCto]), axis=0
+    )
     return X
 
 
 def Linear(X, data_headers):
-    """ Convert to linear from log2 mean-centered. """
+    """Convert to linear from log2 mean-centered."""
     X[data_headers] = pd.DataFrame(np.power(2, X[data_headers]))
     return X
 
 
 def FoldChangeToControl(X, data_headers):
-    """ Convert to fold-change to control. """
+    """Convert to fold-change to control."""
     X[data_headers] = X[data_headers].div(X.iloc[:, 3], axis=0)
     return X
 
 
 def Log2T(X):
-    """ Convert to log2 scale keeping original sign. """
+    """Convert to log2 scale keeping original sign."""
     data_headers = X.select_dtypes(include=["float64"]).columns
     X[data_headers] = np.log2(X[data_headers])
     return X
 
 
 def MeanCenter(X, mc_row, mc_col):
-    """ Mean centers each row of values. logT also optionally log2-transforms. """
+    """Mean centers each row of values. logT also optionally log2-transforms."""
     data_headers = X.select_dtypes(include=["float64"]).columns
     if mc_row:
         X[data_headers] = X[data_headers].sub(X[data_headers].mean(axis=1), axis=0)
@@ -157,23 +234,25 @@ def MeanCenter(X, mc_row, mc_col):
 
 
 def VarianceFilter(X, data_headers, axis=1, varCut=0.1):
-    """ Filter rows/columns for those containing more than cutoff variance. Variance across conditions per peptide.
-    Note this should only be used with log-scaled, mean-centered data. """
+    """Filter rows/columns for those containing more than cutoff variance. Variance across conditions per peptide.
+    Note this should only be used with log-scaled, mean-centered data."""
     Xidx = np.var(X[data_headers].values, axis=axis) > varCut
     return X.iloc[Xidx, :]
 
 
 def FoldChangeFilterToControl(X, data_headers, FCto, cutoff=0.4):
-    """ Filter rows for those containing more than a two-fold change.
-    Note this should only be used with linear-scale data normalized to the control. """
+    """Filter rows for those containing more than a two-fold change.
+    Note this should only be used with linear-scale data normalized to the control."""
     XX = LinearFoldChange(X.copy(), data_headers, FCto)
-    Xidx = np.any(XX[data_headers].values <= 1 - cutoff, axis=1) | np.any(XX[data_headers].values >= 1 + cutoff, axis=1)
+    Xidx = np.any(XX[data_headers].values <= 1 - cutoff, axis=1) | np.any(
+        XX[data_headers].values >= 1 + cutoff, axis=1
+    )
     return X.iloc[Xidx, :]
 
 
 def FoldChangeFilterBasedOnMaxFC(X, data_headers, cutoff=0.5):
-    """ Filter rows for those containing an cutoff% change of the maximum vs minimum fold-change
-    across every condition. """
+    """Filter rows for those containing an cutoff% change of the maximum vs minimum fold-change
+    across every condition."""
     XX = Linear(X.copy(), data_headers)
     X_ToMin = XX[data_headers] / XX[data_headers].min(axis=0)
     Xidx = np.any(X_ToMin.values >= X_ToMin.max().values * cutoff, axis=1)
@@ -184,7 +263,7 @@ def FoldChangeFilterBasedOnMaxFC(X, data_headers, cutoff=0.5):
 
 
 def VFilter(ABC, merging_indices, data_headers, corrCut=0.55, stdCut=0.5):
-    """ Filter based on variability across recurrent peptides in MS biological replicates """
+    """Filter based on variability across recurrent peptides in MS biological replicates"""
     NonRecPeptides, CorrCoefPeptides, StdPeptides = MapOverlappingPeptides(ABC)
 
     NonRecTable = BuildMatrix(NonRecPeptides, ABC, data_headers)
@@ -193,29 +272,35 @@ def VFilter(ABC, merging_indices, data_headers, corrCut=0.55, stdCut=0.5):
 
     CorrCoefPeptides = BuildMatrix(CorrCoefPeptides, ABC, data_headers)
     DupsTable = CorrCoefFilter(CorrCoefPeptides, corrCut=corrCut)
-    DupsTable = MergeDfbyMean(DupsTable, DupsTable[data_headers], merging_indices + ["r2_Std"])
+    DupsTable = MergeDfbyMean(
+        DupsTable, DupsTable[data_headers], merging_indices + ["r2_Std"]
+    )
     DupsTable = DupsTable.assign(BioReps=list("2" * DupsTable.shape[0])).reset_index()
 
     StdPeptides = BuildMatrix(StdPeptides, ABC, data_headers)
-    TripsTable = TripsMeanAndStd(StdPeptides, merging_indices + ["BioReps"], data_headers)
+    TripsTable = TripsMeanAndStd(
+        StdPeptides, merging_indices + ["BioReps"], data_headers
+    )
     TripsTable = FilterByStdev(TripsTable, merging_indices + ["BioReps"], stdCut=stdCut)
 
     merging_indices.insert(4, "BioReps")
     merging_indices.insert(5, "r2_Std")
 
-    ABC = pd.concat(
-        [NonRecTable, DupsTable, TripsTable]
-    ).reset_index()[merging_indices[:2] + list(ABC[data_headers].columns) + merging_indices[2:]]
+    ABC = pd.concat([NonRecTable, DupsTable, TripsTable]).reset_index()[
+        merging_indices[:2] + list(ABC[data_headers].columns) + merging_indices[2:]
+    ]
 
     # Including non-overlapping peptides
     return ABC
 
 
 def MapOverlappingPeptides(ABC):
-    """ Find recurrent peptides across biological replicates. Grouping those showing up 2 to later calculate
+    """Find recurrent peptides across biological replicates. Grouping those showing up 2 to later calculate
     correlation, those showing up >= 3 to take the std. Those showing up 1 can be included or not in the final data set.
-    Final dfs are formed by 'Name', 'Peptide', '#Recurrences'. """
-    dups = pd.pivot_table(ABC, index=["Protein", "Sequence"], aggfunc="size").sort_values()
+    Final dfs are formed by 'Name', 'Peptide', '#Recurrences'."""
+    dups = pd.pivot_table(
+        ABC, index=["Protein", "Sequence"], aggfunc="size"
+    ).sort_values()
     dups = pd.DataFrame(dups).reset_index()
     dups.columns = [ABC.columns[0], ABC.columns[1], "Recs"]
     NonRecPeptides = dups[dups["Recs"] == 1]
@@ -225,8 +310,8 @@ def MapOverlappingPeptides(ABC):
 
 
 def BuildMatrix(peptides, ABC, data_headers):
-    """ Map identified recurrent peptides to generate complete matrices with values.
-    If recurrent peptides = 2, the correlation coefficient is included in a new column. """
+    """Map identified recurrent peptides to generate complete matrices with values.
+    If recurrent peptides = 2, the correlation coefficient is included in a new column."""
     ABC = ABC.reset_index().set_index(["Sequence", "Protein"], drop=False)
     ABC = ABC.sort_index()
 
@@ -258,10 +343,14 @@ def BuildMatrix(peptides, ABC, data_headers):
             print("check this", pepts)
 
     if corrcoefs:
-        matrix = pd.DataFrame(peptideslist).reset_index(drop=True).assign(r2_Std=corrcoefs)
+        matrix = (
+            pd.DataFrame(peptideslist).reset_index(drop=True).assign(r2_Std=corrcoefs)
+        )
 
     elif bioReps:
-        matrix = pd.DataFrame(peptideslist).reset_index(drop=True).assign(BioReps=bioReps)
+        matrix = (
+            pd.DataFrame(peptideslist).reset_index(drop=True).assign(BioReps=bioReps)
+        )
 
     else:
         matrix = pd.DataFrame(peptideslist).reset_index(drop=True)
@@ -270,34 +359,41 @@ def BuildMatrix(peptides, ABC, data_headers):
 
 
 def CorrCoefFilter(X, corrCut=0.6):
-    """ Filter rows for those containing more than a correlation threshold. """
+    """Filter rows for those containing more than a correlation threshold."""
     Xidx = X.iloc[:, -1].values >= corrCut
     return X.iloc[Xidx, :]
 
 
 def TripsMeanAndStd(triplicates, merging_indices, data_headers):
-    """ Merge all triplicates by mean and standard deviation across conditions. Note this builds a multilevel header
-    meaning we have 2 values for each condition (eg within Erlotinib -> Mean | Std). """
+    """Merge all triplicates by mean and standard deviation across conditions. Note this builds a multilevel header
+    meaning we have 2 values for each condition (eg within Erlotinib -> Mean | Std)."""
     func_tri = {}
     for i in triplicates[data_headers].columns:
         func_tri[i] = np.mean, np.std
-    X = pd.pivot_table(triplicates, values=triplicates[data_headers].columns, index=merging_indices, aggfunc=func_tri)
+    X = pd.pivot_table(
+        triplicates,
+        values=triplicates[data_headers].columns,
+        index=merging_indices,
+        aggfunc=func_tri,
+    )
     return X.reset_index()
 
 
 def FilterByRange(X, rangeCut=0.4):
-    """ Filter rows for those containing more than a range threshold. """
+    """Filter rows for those containing more than a range threshold."""
     Rg = X.iloc[:, X.columns.get_level_values(1) == "ptp"]
     Xidx = np.all(Rg.values <= rangeCut, axis=1)
     return X.iloc[Xidx, :]
 
 
 def FilterByStdev(X, merging_indices, stdCut=0.4):
-    """ Filter rows for those containing more than a standard deviation threshold. """
+    """Filter rows for those containing more than a standard deviation threshold."""
     Stds = X.iloc[:, X.columns.get_level_values(1) == "std"]
     StdMeans = list(np.round(Stds.mean(axis=1), decimals=2))
     Xidx = np.mean(Stds.values, axis=1) <= stdCut
-    Means = pd.concat([X[merging_indices], X.iloc[:, X.columns.get_level_values(1) == "mean"]], axis=1)
+    Means = pd.concat(
+        [X[merging_indices], X.iloc[:, X.columns.get_level_values(1) == "mean"]], axis=1
+    )
     Means = Means.iloc[Xidx, :]
     Means.columns = Means.columns.droplevel(1)
     StdMeans = pd.DataFrame(StdMeans).iloc[Xidx, :]
@@ -305,7 +401,7 @@ def FilterByStdev(X, merging_indices, stdCut=0.4):
 
 
 def peptidefinder(X, loc, Protein=False, Gene=False, Sequence=False):
-    """ Search for a specific peptide either by name or sequence. """
+    """Search for a specific peptide either by name or sequence."""
     if Protein:
         found = X[X["Protein"].str.contains(loc)]
     if Gene:
@@ -319,22 +415,30 @@ def peptidefinder(X, loc, Protein=False, Gene=False, Sequence=False):
 
 
 def MergeTR(data):
-    """ Convenient to merge by mean all TRs of IncuCyte """
+    """Convenient to merge by mean all TRs of IncuCyte"""
     for i in range(1, data.shape[1], 2):
-        data.iloc[:, i] = data.iloc[:, i: i + 2].mean(axis=1)
+        data.iloc[:, i] = data.iloc[:, i : i + 2].mean(axis=1)
 
-    return data.drop(data.columns[[i + 1 for i in range(1, data.shape[1], 2)]], axis="columns")
+    return data.drop(
+        data.columns[[i + 1 for i in range(1, data.shape[1], 2)]], axis="columns"
+    )
 
 
 def y_pre(ds, tr, ftp, phenotype, itp=False):
-    """ Preprocesses cell phenotype data sets for analysis. """
+    """Preprocesses cell phenotype data sets for analysis."""
     z = []
     for sl in ds:
         c = sl.loc[:, sl.columns.str.contains(tr)]
         c.insert(0, "Elapsed", ds[0].iloc[:, 0])
-        c = c[list(c.columns[:3]) + [c.columns[4]] + [c.columns[3]] + list(c.columns[5:])]
+        c = c[
+            list(c.columns[:3]) + [c.columns[4]] + [c.columns[3]] + list(c.columns[5:])
+        ]
         if not isinstance(itp, bool):
-            c = c[c["Elapsed"] == ftp].iloc[0, 1:].div(c[c["Elapsed"] == itp].iloc[0, 1:])
+            c = (
+                c[c["Elapsed"] == ftp]
+                .iloc[0, 1:]
+                .div(c[c["Elapsed"] == itp].iloc[0, 1:])
+            )
         else:
             c = c[c["Elapsed"] == ftp].iloc[0, 1:]
         z.append(c)
@@ -349,12 +453,23 @@ def y_pre(ds, tr, ftp, phenotype, itp=False):
     if "-" in y["Lines"][1]:
         y["Lines"] = [s.split("-")[0] for s in y.iloc[:, 0]]
 
-    y["Lines"] = ["WT", "KO", "KD", "KI", "Y634F", "Y643F", "Y698F", "Y726F", "Y750F", "Y821F"]
+    y["Lines"] = [
+        "WT",
+        "KO",
+        "KD",
+        "KI",
+        "Y634F",
+        "Y643F",
+        "Y698F",
+        "Y726F",
+        "Y750F",
+        "Y821F",
+    ]
     return y[["Lines", "Treatment", phenotype]]
 
 
 def FixColumnLabels(cv):
-    """ Fix column labels to use pandas locators. """
+    """Fix column labels to use pandas locators."""
     l = []
     for label in cv[0].columns:
         if "-" not in label and label != "Elapsed":

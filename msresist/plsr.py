@@ -14,7 +14,7 @@ from sklearn.cross_decomposition import PLSRegression
 
 
 def R2Y_across_components(model, X, Y, max_comps, crossval=False):
-    """ Calculate R2Y or Q2Y, depending upon crossval. """
+    """Calculate R2Y or Q2Y, depending upon crossval."""
     R2Ys = []
 
     for b in range(1, max_comps):
@@ -27,15 +27,34 @@ def R2Y_across_components(model, X, Y, max_comps, crossval=False):
         R2Ys.append(explained_variance_score(Y, y_pred))
     return R2Ys
 
+
 def plotR2YQ2Y(ax, model, X, Y, b=3, color="darkblue", title=False):
-    """ Plot R2Y/Q2Y variance explained by each component. """
+    """Plot R2Y/Q2Y variance explained by each component."""
     Q2Y = R2Y_across_components(model, X, Y, b, crossval=True)
     R2Y = R2Y_across_components(model, X, Y, b)
 
     range_ = np.arange(1, b)
 
-    ax.bar(range_ + 0.15, Q2Y, width=0.3, align="center", label="Q2Y", color=color, **{"linewidth": 0.5}, **{"edgecolor": "black"})
-    ax.bar(range_ - 0.15, R2Y, width=0.3, align="center", label="R2Y", color="black", **{"linewidth": 0.5}, **{"edgecolor": "black"})
+    ax.bar(
+        range_ + 0.15,
+        Q2Y,
+        width=0.3,
+        align="center",
+        label="Q2Y",
+        color=color,
+        **{"linewidth": 0.5},
+        **{"edgecolor": "black"},
+    )
+    ax.bar(
+        range_ - 0.15,
+        R2Y,
+        width=0.3,
+        align="center",
+        label="R2Y",
+        color="black",
+        **{"linewidth": 0.5},
+        **{"edgecolor": "black"},
+    )
     ax.set_xticks(range_)
     ax.set_xlabel("Number of Components")
     ax.set_ylabel("Variance")
@@ -44,8 +63,17 @@ def plotR2YQ2Y(ax, model, X, Y, b=3, color="darkblue", title=False):
         ax.set_title(title)
 
 
-def plotActualVsPredicted(ax, plsr_model, X, Y, y_pred="cross-validation", color="darkblue", type="scatter", title=False):
-    """ Plot exprimentally-measured vs PLSR-predicted values. """
+def plotActualVsPredicted(
+    ax,
+    plsr_model,
+    X,
+    Y,
+    y_pred="cross-validation",
+    color="darkblue",
+    type="scatter",
+    title=False,
+):
+    """Plot exprimentally-measured vs PLSR-predicted values."""
     if y_pred == "cross-validation":
         Y_predictions = cross_val_predict(plsr_model, X, Y, cv=Y.shape[0])
         ylabel = "Predicted"
@@ -59,7 +87,11 @@ def plotActualVsPredicted(ax, plsr_model, X, Y, y_pred="cross-validation", color
                 y = Y.iloc[:, i]
                 ypred = Y_predictions[:, i]
                 ax[i].scatter(y, ypred, color=color)
-                ax[i].plot(np.unique(y), np.poly1d(np.polyfit(y, ypred, 1))(np.unique(y)), color="r")
+                ax[i].plot(
+                    np.unique(y),
+                    np.poly1d(np.polyfit(y, ypred, 1))(np.unique(y)),
+                    color="r",
+                )
                 ax[i].set_xlabel("Actual")
                 ax[i].set_ylabel(ylabel)
                 ax[i].set_title(label)
@@ -67,11 +99,22 @@ def plotActualVsPredicted(ax, plsr_model, X, Y, y_pred="cross-validation", color
                 add_rBox(ypred, y, ax)
 
         elif type == "bar":
-            coeff = [sp.stats.pearsonr(Y_predictions[:, i], Y.iloc[:, i])[0] for i in range(len(Y.columns))]
+            coeff = [
+                sp.stats.pearsonr(Y_predictions[:, i], Y.iloc[:, i])[0]
+                for i in range(len(Y.columns))
+            ]
             data = pd.DataFrame()
             data["Phenotype"] = list(Y.columns)
             data["r-score"] = coeff
-            sns.barplot(x="Phenotype", y="r-score", data=data, ax=ax, color=color, **{"linewidth": 0.5}, **{"edgecolor": "black"})
+            sns.barplot(
+                x="Phenotype",
+                y="r-score",
+                data=data,
+                ax=ax,
+                color=color,
+                **{"linewidth": 0.5},
+                **{"edgecolor": "black"},
+            )
             if title:
                 ax.set_title(title)
 
@@ -79,7 +122,9 @@ def plotActualVsPredicted(ax, plsr_model, X, Y, y_pred="cross-validation", color
         y = Y.iloc[:, 0]
         ypred = Y_predictions[:, 0]
         ax.scatter(y, ypred)
-        ax.plot(np.unique(y), np.poly1d(np.polyfit(y, ypred, 1))(np.unique(y)), color="r")
+        ax.plot(
+            np.unique(y), np.poly1d(np.polyfit(y, ypred, 1))(np.unique(y)), color="r"
+        )
         ax.set_xlabel("Actual")
         ax.set_ylabel(ylabel)
         ax.set_title(Y.columns[0])
@@ -91,7 +136,9 @@ def add_rBox(ypred, y, ax):
     coeff, _ = sp.stats.pearsonr(ypred, y)
     textstr = "$r$ = " + str(np.round(coeff, 4))
     props = dict(boxstyle="square", facecolor="none", alpha=0.5, edgecolor="black")
-    ax.text(0.75, 0.10, textstr, transform=ax.transAxes, verticalalignment="top", bbox=props)
+    ax.text(
+        0.75, 0.10, textstr, transform=ax.transAxes, verticalalignment="top", bbox=props
+    )
 
 
 def plotStripActualVsPred(ax, n_components, Xs, Y, models, size=10, type="strip"):
@@ -99,22 +146,52 @@ def plotStripActualVsPred(ax, n_components, Xs, Y, models, size=10, type="strip"
     datas = []
     for ii, X in enumerate(Xs):
         data = pd.DataFrame()
-        Y_predictions = cross_val_predict(PLSRegression(n_components=n_components[ii]), X, Y, cv=Y.shape[0])
-        coeff = [sp.stats.pearsonr(Y_predictions[:, jj], Y.iloc[:, jj])[0] for jj in range(len(Y.columns))]
+        Y_predictions = cross_val_predict(
+            PLSRegression(n_components=n_components[ii]), X, Y, cv=Y.shape[0]
+        )
+        coeff = [
+            sp.stats.pearsonr(Y_predictions[:, jj], Y.iloc[:, jj])[0]
+            for jj in range(len(Y.columns))
+        ]
         data["Phenotype"] = list(Y.columns)
         data["r-score (Actual vs Predicted)"] = coeff
         data["Model"] = models[ii]
         datas.append(data)
     res = pd.concat(datas)
     if type == "strip":
-        sns.stripplot(x="Phenotype", y="r-score (Actual vs Predicted)", data=res, ax=ax, hue="Model", size=size)
+        sns.stripplot(
+            x="Phenotype",
+            y="r-score (Actual vs Predicted)",
+            data=res,
+            ax=ax,
+            hue="Model",
+            size=size,
+        )
     elif type == "bar":
-        sns.barplot(x="Phenotype", y="r-score (Actual vs Predicted)", data=res, ax=ax, hue="Model")
-    ax.legend(prop={'size': 8})
-    ax.tick_params(axis='x', rotation=45)
+        sns.barplot(
+            x="Phenotype",
+            y="r-score (Actual vs Predicted)",
+            data=res,
+            ax=ax,
+            hue="Model",
+        )
+    ax.legend(prop={"size": 8})
+    ax.tick_params(axis="x", rotation=45)
 
 
-def plotScoresLoadings(ax, model, X, Y, ncl, treatments, pcX=1, pcY=2, data="clusters", annotate=True, spacer=0.05):
+def plotScoresLoadings(
+    ax,
+    model,
+    X,
+    Y,
+    ncl,
+    treatments,
+    pcX=1,
+    pcY=2,
+    data="clusters",
+    annotate=True,
+    spacer=0.05,
+):
     """Plot Scores and Loadings of PLSR model"""
     X_scores, _ = model.transform(X, Y)
     PC1_xload, PC2_xload = model.x_loadings_[:, pcX - 1], model.x_loadings_[:, pcY - 1]
@@ -132,8 +209,12 @@ def plotScoresLoadings(ax, model, X, Y, ncl, treatments, pcX=1, pcY=2, data="clu
     ax[0].axhline(y=0, color="0.25", linestyle="--")
     ax[0].axvline(x=0, color="0.25", linestyle="--")
 
-    ax[0].set_xlim([(-1 * max(np.abs(PC1_scores))) - spacer, max(np.abs(PC1_scores)) + spacer])
-    ax[0].set_ylim([(-1 * max(np.abs(PC2_scores))) - spacer, max(np.abs(PC2_scores)) + spacer])
+    ax[0].set_xlim(
+        [(-1 * max(np.abs(PC1_scores))) - spacer, max(np.abs(PC1_scores)) + spacer]
+    )
+    ax[0].set_ylim(
+        [(-1 * max(np.abs(PC2_scores))) - spacer, max(np.abs(PC2_scores)) + spacer]
+    )
 
     # Loadings
     if data != "clusters":
@@ -144,12 +225,18 @@ def plotScoresLoadings(ax, model, X, Y, ncl, treatments, pcX=1, pcY=2, data="clu
         numbered = []
         list(map(lambda v: numbered.append(str(v + 1)), range(ncl)))
         for i, txt in enumerate(numbered):
-            ax[1].annotate(txt, (PC1_xload[i] + spacer, PC2_xload[i] - spacer), fontsize=10)
+            ax[1].annotate(
+                txt, (PC1_xload[i] + spacer, PC2_xload[i] - spacer), fontsize=10
+            )
     markers = ["x", "D", "*", "1"]
     for i, label in enumerate(Y.columns):
-        ax[1].annotate(label, (PC1_yload[i] + spacer, PC2_yload[i] - spacer), fontsize=10)
+        ax[1].annotate(
+            label, (PC1_yload[i] + spacer, PC2_yload[i] - spacer), fontsize=10
+        )
         ax[1].scatter(PC1_yload[i], PC2_yload[i], color="black", marker=markers[i])
-    ax[1].scatter(PC1_xload, PC2_xload, c=np.arange(ncl), cmap=colors.ListedColormap(colors_))
+    ax[1].scatter(
+        PC1_xload, PC2_xload, c=np.arange(ncl), cmap=colors.ListedColormap(colors_)
+    )
     ax[1].set_title("PLSR Model Loadings", fontsize=12)
     ax[1].set_xlabel("Principal Component 1", fontsize=11)
     ax[1].set_ylabel("Principal Component 2", fontsize=11)

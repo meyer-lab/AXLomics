@@ -1,4 +1,5 @@
 """Creates plots to visualize cell clustering data"""
+
 import glob
 import math
 import numpy as np
@@ -28,12 +29,24 @@ def PlotSingleDistances(folder, extension, ax, log=False):
 
 def GetTimes(folder, extension):
     """Takes in a folder and extension in correct format and returns list of times"""
-    filenames = glob.glob("msresist/data/Phenotypic_data/Distances/" + folder + "/Results_" + extension + "*.csv")
-    filename_prefix = "msresist/data/Phenotypic_data/Distances/" + folder + "/Results_" + extension + "_"
+    filenames = glob.glob(
+        "msresist/data/Phenotypic_data/Distances/"
+        + folder
+        + "/Results_"
+        + extension
+        + "*.csv"
+    )
+    filename_prefix = (
+        "msresist/data/Phenotypic_data/Distances/"
+        + folder
+        + "/Results_"
+        + extension
+        + "_"
+    )
     filename_suffix = ".csv"
     times = []
     for file in filenames:
-        time = int(file[len(filename_prefix): -len(filename_suffix)])
+        time = int(file[len(filename_prefix) : -len(filename_suffix)])
         times.append(time)
     times = sorted(times)
     return times
@@ -43,7 +56,15 @@ def Generate_dfs(folder, extension, times):
     """Generates dfs of the data at each time point with an added column for time"""
     file_list = []
     for time in times:
-        file = pd.read_csv("msresist/data/Phenotypic_data/Distances/" + folder + "/Results_" + extension + "_" + str(time) + ".csv")
+        file = pd.read_csv(
+            "msresist/data/Phenotypic_data/Distances/"
+            + folder
+            + "/Results_"
+            + extension
+            + "_"
+            + str(time)
+            + ".csv"
+        )
         file["Time"] = time
         file_list.append(file)
     return file_list
@@ -66,7 +87,7 @@ def Calculate_closest(file_list, n=(1, 3)):
                 distances.append(distance)
             distances = sorted(distances)
             # shortest_n_distances_lists.append(distances[1:(n+1)])
-            shortest_n_distances.extend(distances[n[0]: (n[1] + 1)])
+            shortest_n_distances.extend(distances[n[0] : (n[1] + 1)])
         distances_df["Distances"] = shortest_n_distances
         distances_df["Time"] = idx * 3
         distances_by_time.append(distances_df)
@@ -92,18 +113,33 @@ def PlotClosestN(folder, extension, ax, log=False, cells=(1, 3)):
         ax.set_title(extension)
 
 
-def PlotNhrsdistances(folder, mutants, treatments, replicates, ax, log=False, logmean=False, cells=(1, 3)):
+def PlotNhrsdistances(
+    folder, mutants, treatments, replicates, ax, log=False, logmean=False, cells=(1, 3)
+):
     """Creates either raw/log grouped boxplot or log pointplot for distances to cells depending on log and logmean variables for range of nearby cells"""
-    to_plot = Distances_import(folder, mutants, treatments, replicates, cells, logbool=False)
+    to_plot = Distances_import(
+        folder, mutants, treatments, replicates, cells, logbool=False
+    )
     if log:
         logs = []
         for length in to_plot["Distances"]:
             logs.append(math.log(length))
         to_plot["Log Distances"] = logs
         if logmean:
-            sns.pointplot(x="Mutant", y="Log Distances", hue="Condition", data=to_plot, errorbar=('ci', 68), join=False, dodge=0.4, ax=ax)
+            sns.pointplot(
+                x="Mutant",
+                y="Log Distances",
+                hue="Condition",
+                data=to_plot,
+                errorbar=("ci", 68),
+                join=False,
+                dodge=0.4,
+                ax=ax,
+            )
         else:
-            sns.boxplot(x="Mutant", y="Log Distances", hue="Condition", data=to_plot, ax=ax)
+            sns.boxplot(
+                x="Mutant", y="Log Distances", hue="Condition", data=to_plot, ax=ax
+            )
     else:
         sns.boxplot(x="Mutant", y="Distances", hue="Condition", data=to_plot, ax=ax)
         ax.set_ylim(0, 5)
@@ -123,16 +159,42 @@ def calculatedistances(file, mutant, treatment, replicate, cells=(1, 3)):
     return distances_df
 
 
-def Plot_Logmean(folder, mutants, treatments, replicates, ax, vs_count=False, cells=(1, 3)):
+def Plot_Logmean(
+    folder, mutants, treatments, replicates, ax, vs_count=False, cells=(1, 3)
+):
     """Plots the log mean distance to neighbors by mutant and condition as given by cells argument.
     Will plot vs number of cells in image if vs_count is True"""
-    to_plot = Distances_import(folder, mutants, treatments, replicates, cells, logbool=True, count_bool=vs_count)
+    to_plot = Distances_import(
+        folder,
+        mutants,
+        treatments,
+        replicates,
+        cells,
+        logbool=True,
+        count_bool=vs_count,
+    )
     if vs_count:
-        sns.scatterplot(x="Cells", y="Log_Mean_Distances", hue="Condition", style="Condition", data=to_plot, ax=ax)
+        sns.scatterplot(
+            x="Cells",
+            y="Log_Mean_Distances",
+            hue="Condition",
+            style="Condition",
+            data=to_plot,
+            ax=ax,
+        )
         # for line in range(0, to_plot.shape[0]):
         # b.text(to_plot.Cells.iloc[line], to_plot.Log_Mean_Distances.iloc[line], to_plot.Mutant.iloc[line], horizontalalignment='left', size='medium', color='black', weight='semibold')
     else:
-        sns.pointplot(x="Mutant", y="Log_Mean_Distances", hue="Condition", data=to_plot, errorbar=('ci', 68), join=False, dodge=0.25, ax=ax)
+        sns.pointplot(
+            x="Mutant",
+            y="Log_Mean_Distances",
+            hue="Condition",
+            data=to_plot,
+            errorbar=("ci", 68),
+            join=False,
+            dodge=0.25,
+            ax=ax,
+        )
 
 
 def calculatedistances_logmean(file, mutant, treatment, vs_count, cells=(1, 3)):
@@ -142,14 +204,31 @@ def calculatedistances_logmean(file, mutant, treatment, vs_count, cells=(1, 3)):
     for length in shortest_n_distances:
         logs.append(math.log(length))
     if vs_count:
-        distances_df = {"Log_Mean_Distances": [np.mean(logs)], "Cells": [count], "Condition": [treatment], "Mutant": [mutant]}
+        distances_df = {
+            "Log_Mean_Distances": [np.mean(logs)],
+            "Cells": [count],
+            "Condition": [treatment],
+            "Mutant": [mutant],
+        }
     else:
-        distances_df = {"Log_Mean_Distances": [np.mean(logs)], "Mutant": [mutant], "Condition": [treatment]}
+        distances_df = {
+            "Log_Mean_Distances": [np.mean(logs)],
+            "Mutant": [mutant],
+            "Condition": [treatment],
+        }
     distances_df = pd.DataFrame(distances_df)
     return distances_df
 
 
-def Distances_import(folder_name, mutant_list, treatment_list, replicate_number, cell_tuple, logbool, count_bool=None):
+def Distances_import(
+    folder_name,
+    mutant_list,
+    treatment_list,
+    replicate_number,
+    cell_tuple,
+    logbool,
+    count_bool=None,
+):
     """Imports specific files for the distance based plots, calculates distances, and returns a plottable df of distances"""
     dfs = []
     for mutant in mutant_list:
@@ -157,13 +236,32 @@ def Distances_import(folder_name, mutant_list, treatment_list, replicate_number,
         for treatment in treatment_list:
             for replicate in range(1, replicate_number + 1):
                 if replicate != 1:
-                    file = pd.read_csv("msresist/data/Phenotypic_data/Distances/" + folder_name + "/Results_" + mutant + treatment + str(replicate) + ".csv")
+                    file = pd.read_csv(
+                        "msresist/data/Phenotypic_data/Distances/"
+                        + folder_name
+                        + "/Results_"
+                        + mutant
+                        + treatment
+                        + str(replicate)
+                        + ".csv"
+                    )
                 else:
-                    file = pd.read_csv("msresist/data/Phenotypic_data/Distances/" + folder_name + "/Results_" + mutant + treatment + ".csv")
+                    file = pd.read_csv(
+                        "msresist/data/Phenotypic_data/Distances/"
+                        + folder_name
+                        + "/Results_"
+                        + mutant
+                        + treatment
+                        + ".csv"
+                    )
                 if logbool:
-                    distances = calculatedistances_logmean(file, mutant, treatment, count_bool, cell_tuple)
+                    distances = calculatedistances_logmean(
+                        file, mutant, treatment, count_bool, cell_tuple
+                    )
                 else:
-                    distances = calculatedistances(file, mutant, treatment, replicate, cell_tuple)
+                    distances = calculatedistances(
+                        file, mutant, treatment, replicate, cell_tuple
+                    )
                 mut_frames.append(distances)
         mut_frame = pd.concat(mut_frames)
         dfs.append(mut_frame)
@@ -183,7 +281,7 @@ def shortest_distances(file_df, cell_tuple):
             distance = abs(math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2))
             distances.append(distance)
         distances = sorted(distances)
-        shortest_n_distances.extend(distances[cell_tuple[0]: (cell_tuple[1] + 1)])
+        shortest_n_distances.extend(distances[cell_tuple[0] : (cell_tuple[1] + 1)])
     return shortest_n_distances, points.shape[0]
 
 
@@ -231,17 +329,35 @@ def island_pvals_table(c, all_lines):
     table["Cell Line"] = muts
     table["Island"] = out
     table = table.set_index("Cell Line")
-    table = table.rename(index={"M7": "Y698F", "M4": "Y634F", "M5": "Y643F", "M10":"Y726F", "M11":"Y750F", "M15": "Y821F", "PC9": "WT", "KIN": "KI"})
+    table = table.rename(
+        index={
+            "M7": "Y698F",
+            "M4": "Y634F",
+            "M5": "Y643F",
+            "M10": "Y726F",
+            "M11": "Y750F",
+            "M15": "Y821F",
+            "PC9": "WT",
+            "KIN": "KI",
+        }
+    )
 
     return table.T[all_lines].T
 
 
-def PlotRipleysK(ax , mutant, out=False, title=None):
+def PlotRipleysK(ax, mutant, out=False, title=None):
     """Plots the Ripley's K Estimate in comparison to the Poisson for a range of radii"""
     island_data = import_island_data("48hrs", mutant, ["ut", "e", "ae"], 6)
-    sns.lineplot(x="Radii", y="K Estimate", hue="Condition", data=island_data, errorbar=('ci', 68), ax=ax)
+    sns.lineplot(
+        x="Radii",
+        y="K Estimate",
+        hue="Condition",
+        data=island_data,
+        errorbar=("ci", 68),
+        ax=ax,
+    )
     ax.set_xlim(0, 2.5)
-    ax.legend(prop={'size': 8})
+    ax.legend(prop={"size": 8})
     if title:
         ax.set_title(title)
     else:
@@ -250,7 +366,19 @@ def PlotRipleysK(ax , mutant, out=False, title=None):
         return island_data
 
 
-def BarPlotRipleysK(ax, folder, mutants, xticklabels, treatments, legendlabels, replicates, r, colors, TreatmentFC=False, ylabel=False):
+def BarPlotRipleysK(
+    ax,
+    folder,
+    mutants,
+    xticklabels,
+    treatments,
+    legendlabels,
+    replicates,
+    r,
+    colors,
+    TreatmentFC=False,
+    ylabel=False,
+):
     """Plots a bar graph of the Ripley's K Estimate values for all mutants and conditions in comparison to the Poisson at a discrete radius.
     Note that radius needs to be input as a 1D array for the RipleysKEstimator to work"""
     Kest = RipleysKEstimator(area=158.8761, x_max=14.67, y_max=10.83, x_min=0, y_min=0)
@@ -274,13 +402,23 @@ def BarPlotRipleysK(ax, folder, mutants, xticklabels, treatments, legendlabels, 
         ut["K Estimate"] /= e
         af["K Estimate"] /= e
         df = pd.concat([ut, af])
-        ax.axhline(1, ls='--', label="Erlotinib", color="red", linewidth=1)
+        ax.axhline(1, ls="--", label="Erlotinib", color="red", linewidth=1)
 
     pal = sns.xkcd_palette(colors)
-    sns.barplot(x="AXL mutants Y->F", y="K Estimate", hue="Treatment", data=df, errorbar=('ci', 68), palette=pal, ax=ax, **{"linewidth": 0.5}, **{"edgecolor": "black"})
+    sns.barplot(
+        x="AXL mutants Y->F",
+        y="K Estimate",
+        hue="Treatment",
+        data=df,
+        errorbar=("ci", 68),
+        palette=pal,
+        ax=ax,
+        **{"linewidth": 0.5},
+        **{"edgecolor": "black"},
+    )
     ax.set_title("Island effect")
     ax.set_xticklabels(xticklabels, rotation=90)
-    ax.legend(prop={'size': 8})
+    ax.legend(prop={"size": 8})
 
     if ylabel:
         ax.set_ylabel(ylabel)
@@ -293,7 +431,13 @@ def BarPlotRipleysK_TimePlots(folder, mutant, extensions, treatments, r, ax):
     poisson = Kest.poisson(r)
     treatment_dfs = []
     for idx, extension in enumerate(extensions):
-        file = pd.read_csv("msresist/data/Phenotypic_data/Distances/" + folder + "/Results_" + extension + ".csv")
+        file = pd.read_csv(
+            "msresist/data/Phenotypic_data/Distances/"
+            + folder
+            + "/Results_"
+            + extension
+            + ".csv"
+        )
         points = file.loc[:, "X":"Y"].values
         treat_array = Kest(data=points, radii=r, mode="ripley") / poisson
         df = pd.DataFrame(treat_array)
@@ -303,7 +447,9 @@ def BarPlotRipleysK_TimePlots(folder, mutant, extensions, treatments, r, ax):
         # add_poisson(poisson, mutant, df)
         treatment_dfs.append(df)
     df = pd.concat(treatment_dfs)
-    sns.barplot(x="Mutant", y="K Estimate", hue="Treatment", data=df, errorbar=('ci', 68), ax=ax)
+    sns.barplot(
+        x="Mutant", y="K Estimate", hue="Treatment", data=df, errorbar=("ci", 68), ax=ax
+    )
     ax.set_xlabel("")
     ax.legend(loc=4, frameon=False)
 
@@ -337,7 +483,15 @@ def PlotRipleysK_TimeCourse(folder, extensions, timepoint, ax):
     data = np.vstack((r, poisson))
     treatments = []
     for extension in extensions:
-        file = pd.read_csv("msresist/data/Phenotypic_data/Distances/" + folder + "/Results_" + extension + "_" + str(timepoint) + ".csv")
+        file = pd.read_csv(
+            "msresist/data/Phenotypic_data/Distances/"
+            + folder
+            + "/Results_"
+            + extension
+            + "_"
+            + str(timepoint)
+            + ".csv"
+        )
         points = file.loc[:, "X":"Y"].values
         treatments.append(points)
     Kests = []
@@ -350,7 +504,9 @@ def PlotRipleysK_TimeCourse(folder, extensions, timepoint, ax):
     df.columns = ["Radii", "Poisson", "Untreated", "Erlotinib", "Erlotinib + AF154"]
     df = pd.melt(df, ["Radii"])
     df.columns = ["Radii", "Condition", "K Estimate"]
-    sns.lineplot(x="Radii", y="K Estimate", hue="Condition", data=df, errorbar=('ci', 68), ax=ax)
+    sns.lineplot(
+        x="Radii", y="K Estimate", hue="Condition", data=df, errorbar=("ci", 68), ax=ax
+    )
     ax.set_title(str(timepoint) + " hours")
 
 
@@ -359,9 +515,24 @@ def ripleys_import(replicate_number, folder_name, mutant_name, treatment_name):
     reps = []
     for replicate in range(1, replicate_number + 1):
         if replicate != 1:
-            file = pd.read_csv("msresist/data/Phenotypic_data/Distances/" + folder_name + "/Results_" + mutant_name + treatment_name + str(replicate) + ".csv")
+            file = pd.read_csv(
+                "msresist/data/Phenotypic_data/Distances/"
+                + folder_name
+                + "/Results_"
+                + mutant_name
+                + treatment_name
+                + str(replicate)
+                + ".csv"
+            )
         else:
-            file = pd.read_csv("msresist/data/Phenotypic_data/Distances/" + folder_name + "/Results_" + mutant_name + treatment_name + ".csv")
+            file = pd.read_csv(
+                "msresist/data/Phenotypic_data/Distances/"
+                + folder_name
+                + "/Results_"
+                + mutant_name
+                + treatment_name
+                + ".csv"
+            )
         points = file.loc[:, "X":"Y"].values
         reps.append(points)
     return reps
@@ -372,7 +543,9 @@ def treat_array_func(rep_list, Kest_func, radius, poisson_val, Kestbool=False):
     Kests = []
     if Kestbool:
         for point_set in rep_list:
-            Kests.append(Kest_func(data=point_set, radii=radius, mode="ripley") / poisson_val)
+            Kests.append(
+                Kest_func(data=point_set, radii=radius, mode="ripley") / poisson_val
+            )
         if len(Kests) < 2:
             treat_array = Kests[0]
             return treat_array

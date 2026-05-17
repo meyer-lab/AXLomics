@@ -1,6 +1,5 @@
 """Binomial probability calculation to compute sequence distance between sequences and clusters."""
 
-
 import numpy as np
 import pandas as pd
 import scipy.special as sc
@@ -32,7 +31,28 @@ AAfreq = {
     "Y": 0.033,
     "V": 0.068,
 }
-AAlist = ["A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y"]
+AAlist = [
+    "A",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "K",
+    "L",
+    "M",
+    "N",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "V",
+    "W",
+    "Y",
+]
 
 
 def position_weight_matrix(seqs, pseudoC=AAfreq):
@@ -46,7 +66,7 @@ def frequencies(seqs):
 
 
 def InformationContent(seqs):
-    """ The mean of the PSSM is particularly important becuase its value is equal to the
+    """The mean of the PSSM is particularly important becuase its value is equal to the
     Kullback-Leibler divergence or relative entropy, and is a measure for the information content
     of the motif compared to the background."""
     pssm = position_weight_matrix(seqs).log_odds(AAfreq)
@@ -78,7 +98,9 @@ def BackgroundSeqs(forseqs):
     pTf = forw_pTn / forw_tot
 
     # Import backgroun sequences file
-    PsP = pd.read_csv("./msresist/data/Sequence_analysis/pX_dataset_PhosphoSitePlus2019.csv")
+    PsP = pd.read_csv(
+        "./msresist/data/Sequence_analysis/pX_dataset_PhosphoSitePlus2019.csv"
+    )
     PsP = PsP[~PsP["SITE_+/-7_AA"].str.contains("_")]
     PsP = PsP[~PsP["SITE_+/-7_AA"].str.contains("X")]
     refseqs = list(PsP["SITE_+/-7_AA"])
@@ -111,9 +133,14 @@ def BackgProportions(refseqs, pYn, pSn, pTn):
         if seq[7] not in pR:
             continue
 
-        motif = str(seq)[7 - 5: 7 + 6].upper()
-        assert len(motif) == 11, "Wrong sequence length. Sliced: %s, Full: %s" % (motif, seq)
-        assert motif[5].lower() in pR, "Wrong central AA in background set. Sliced: %s, Full: %s" % (motif, seq)
+        motif = str(seq)[7 - 5 : 7 + 6].upper()
+        assert len(motif) == 11, "Wrong sequence length. Sliced: %s, Full: %s" % (
+            motif,
+            seq,
+        )
+        assert motif[5].lower() in pR, (
+            "Wrong central AA in background set. Sliced: %s, Full: %s" % (motif, seq)
+        )
 
         if motif[5] == "Y" and len(y_seqs) < pYn:
             y_seqs.append(Seq(motif))
@@ -127,20 +154,23 @@ def BackgProportions(refseqs, pYn, pSn, pTn):
     return y_seqs + s_seqs + t_seqs
 
 
-class Binomial():
-    """Create a binomial distance distribution. """
+class Binomial:
+    """Create a binomial distance distribution."""
 
     def __init__(self, seq, seqs):
         # Background sequences
         background = position_weight_matrix(BackgroundSeqs(seq))
-        self.background = (np.array([background[AA] for AA in AAlist]), GenerateBinarySeqID(seqs))
+        self.background = (
+            np.array([background[AA] for AA in AAlist]),
+            GenerateBinarySeqID(seqs),
+        )
 
         self.logWeights = 0.0
         assert np.all(np.isfinite(self.background[0]))
         assert np.all(np.isfinite(self.background[1]))
 
     def from_summaries(self, weightsIn):
-        """ Update the underlying distribution. """
+        """Update the underlying distribution."""
         k = np.einsum("kji,kl->lji", self.background[1], weightsIn)
         betaA = np.sum(weightsIn, axis=0)[:, None, None] - k
         betaA = np.clip(betaA, 0.001, np.inf)
@@ -150,7 +180,7 @@ class Binomial():
 
 
 def CountPsiteTypes(X, cA):
-    """ Count number of different phosphorylation types in a MS data set."""
+    """Count number of different phosphorylation types in a MS data set."""
     positionSeq = [seq[cA] for seq in X]
     pS = positionSeq.count("s")
     pT = positionSeq.count("t")
