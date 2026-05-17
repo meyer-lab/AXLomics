@@ -1,0 +1,36 @@
+[project]
+name = "axlomics"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "astropy==5.2",
+    "bioinfokit>=2.1.4",
+    "biopython==1.80",
+    "gseapy>=1.2.1",
+    "jupyter==1.0.0",
+    "logomaker==0.8",
+    "matplotlib==3.6.2",
+    "mygene",
+    "numpy==1.23.5",
+    "pandas==1.5.2",
+    "pyarrow>=24.0.0",
+    "scanpy>=1.9.6",
+    "scikit-learn==1.2.0",
+    "scipy==1.9.3",
+    "seaborn==0.12.1",
+    "statannot>=0.2.3",
+    "statsmodels==0.13.5",
+    "svgutils==0.3.4",
+    "venny4py>=1.0.3",
+]
+
+[tool.uv.sources]
+mygene = { git = "https://github.com/biothings/mygene.py.git", rev = "master" }
+
+[dependency-groups]
+dev = [
+    "pytest==7.2.0",
+    "pytest-cov==4.0.0",
+]
