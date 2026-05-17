@@ -1,29 +1,32 @@
 # flist = 1 2
 
-all: $(patsubst %, output/figure%.svg, $(flist))
+all: .venv $(patsubst %, output/figure%.svg, $(flist))
 
 # Figure rules
-output/figure%.svg: venv genFigure.py msresist/figures/figure%.py
-	. venv/bin/activate && ./genFigure.py $*
+output/figure%.svg: .venv msresist/figures/figure%.py
+	uv run ./genFigure.py $*
 
-venv: venv/bin/activate
+.venv: pyproject.toml uv.lock
+	uv sync
+	touch .venv
 
-venv/bin/activate: requirements.txt msresist/data/RNAseq/AXLmutants_RNAseq_merged.feather
-	test -d venv || virtualenv venv
-	. venv/bin/activate && pip install --prefer-binary -Uqr requirements.txt
-	touch venv/bin/activate
+test: .venv
+	uv run pytest -s -v -x msresist
 
-test: venv
-	. venv/bin/activate && pytest -s -v -x msresist
-
-testcover: venv
-	. venv/bin/activate && pytest --junitxml=junit.xml --cov=msresist --cov-report xml:coverage.xml
+testcover: .venv
+	uv run pytest --junitxml=junit.xml --cov=msresist --cov-report xml:coverage.xml
 
 msresist/data/RNAseq/AXLmutants_RNAseq_merged.feather: msresist/data/RNAseq/AXLmutants_RNAseq_merged.feather.xz
 	xz -vk -d $<
 
-%.pdf: %.ipynb
-	. venv/bin/activate && jupyter nbconvert --execute --ExecutePreprocessor.timeout=6000 --to pdf $< --output $@
+%.pdf: %.ipynb .venv
+	uv run jupyter nbconvert --execute --ExecutePreprocessor.timeout=6000 --to pdf $< --output $@
+
+lint: .venv
+	uv run ruff check .
+
+notebooks: .venv
+	uv run jupyter nbconvert --execute --inplace *.ipynb
 
 clean:
-	rm -rf *.pdf venv pylint.log
+	rm -rf *.pdf .venv pylint.log

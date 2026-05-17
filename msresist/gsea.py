@@ -7,7 +7,7 @@ import mygene
 from msresist.pre_processing import Linear
 
 
-path = "/Users/creixell/Desktop/"
+path = "./"
 
 
 def translate_geneIDs(
