@@ -1,7 +1,11 @@
 [project]
 name = "axlomics"
 version = "0.1.0"
-description = "Add your description here"
+description = "Dissecting signaling regulators driving AXL-mediated bypass resistance and associated phenotypes by phosphosite perturbations."
+authors = [
+    {name = "Marc Creixell", email = "creixell.marc@gmail.com"},
+    {name = "Aaron S. Meyer", email = "git@ameyer.me"}
+]
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
