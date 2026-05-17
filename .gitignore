@@ -3,6 +3,7 @@
 **.DS_Store
 *.sublime-workspace
 venv
+.venv
 .vscode/settings.json
 cache/requests-cache.sqlite
 **.so
