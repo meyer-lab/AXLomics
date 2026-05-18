@@ -36,7 +36,7 @@ mygene = { git = "https://github.com/biothings/mygene.py.git", rev = "master" }
 
 [dependency-groups]
 dev = [
-    "pytest==7.2.0",
+    "pytest==9.0.3",
     "pytest-cov==4.0.0",
     "ruff>=0.15.13",
 ]
