@@ -123,7 +123,9 @@ def RNA_by_AXL_levels(rnaR_tumor, protR_tumor, pmut, c123):
     rna_HL = make_AXL_categorical_data(
         rnaR_tumor, protR_tumor, phospho=False, by_samples=True, by_thres=False
     )
-    df_rna = rna_HL.reset_index().set_index("geneSymbol").loc[genes].reset_index()
+    rna_idx = rna_HL.reset_index().set_index("geneSymbol")
+    genes = [g for g in genes if g in rna_idx.index]
+    df_rna = rna_idx.loc[genes].reset_index()
     rna_long = pd.melt(
         df_rna, "geneSymbol", df_rna.columns[1:], "Sample", "Log(protein expression)"
     )
@@ -189,15 +191,15 @@ def Protein_by_AXL_levels(protR_tumor, pmut, c123):
         pd.DataFrame: Pivoted DataFrame with median z-scored protein expression grouped by AXL levels, EGFR mutational status, and cluster.
     """
     genes = filter_out_genes_not_included(c123, "Protein")
-    protHL = (
+    prot_idx = (
         make_AXL_categorical_data(
             protR_tumor, protR_tumor, phospho=False, by_samples=True, by_thres=False
         )
         .reset_index()
         .set_index("geneSymbol")
-        .loc[genes]
-        .reset_index()
     )
+    genes = [g for g in genes if g in prot_idx.index]
+    protHL = prot_idx.loc[genes].reset_index()
     p_long = pd.melt(
         protHL, "geneSymbol", protHL.columns[1:], "Sample", "Log(protein expression)"
     )

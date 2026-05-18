@@ -147,8 +147,9 @@ def plot_Specificity_Enrichment_by_DDMC_cluster():
         verbose=True,  # see what's going on behind the scenes
     )
 
+    available_terms = list(pre_res.res2d["Term"])
     pre_res.plot(
-        terms=["2", "3", "4"],
+        terms=available_terms[:3],
         # legend_kws={'loc': (1.2, 0)}, # set the legend loc
         show_ranking=True,  # whether to show the second yaxis
         figsize=(3, 4),
