@@ -1,10 +1,6 @@
 # flist = 1 2
 
-all: .venv $(patsubst %, output/figure%.svg, $(flist))
-
-# Figure rules
-output/figure%.svg: .venv msresist/figures/figure%.py
-	uv run ./genFigure.py $*
+all: .venv
 
 .venv: pyproject.toml uv.lock
 	uv sync
