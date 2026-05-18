@@ -10,11 +10,4 @@ cache/requests-cache.sqlite
 **.c
 **.o
 msresist/data/RNAseq/AXLmutants_RNAseq_merged.feather
-# Notebook output artifacts
-*.svg
-*.pdf
-*.png
-Clusters_WTvsKO_pY.csv
-Intersections_4.txt
-msresist/data/AXL_clusters.csv
-msresist/results/
+output/
