@@ -25,9 +25,7 @@ def makeFigure():
         rc={"grid.linestyle": "dotted", "axes.linewidth": 0.6},
     )
 
-    adata = preprocess_maynard(
-        "/scratch4/creixell/Maynard/8091e3d90a9045a181b2fc11000c0dd9_PMID32822576.h5ad"
-    )
+    adata = preprocess_maynard()
     adata, TvsNAT, cc = annotate_maynard(adata)
 
     adata_egfr = adata[adata.obs["Driver gene"] == "EGFR"]
@@ -97,11 +95,12 @@ def plot_tsne(adata_egfr):
     sc.pl.tsne(adata_egfr, color=["Author's cell type"], ncols=1)
 
 
+MAYNARD_H5AD = "msresist/data/Maynard/8091e3d90a9045a181b2fc11000c0dd9_PMID32822576.h5ad"
+
+
 def preprocess_maynard():
     """Load the Maynard dataset, calculate QC matrics, and filter cells and genes."""
-    adata = sc.read_h5ad(
-        "/scratch4/creixell/Maynard/8091e3d90a9045a181b2fc11000c0dd9_PMID32822576.h5ad"
-    )
+    adata = sc.read_h5ad(MAYNARD_H5AD)
     sc.pp.calculate_qc_metrics(adata, inplace=True)
     adata = adata[adata.obs["total_counts"] != 0]
 
@@ -136,7 +135,7 @@ def annotate_maynard(adata):
     Annotate the Maynard dataset with cell type and inferCNV annotations.
     """
     # Load cell type annotations
-    cca = pd.read_csv("/scratch4/creixell/Maynard/cancer_cell_annotation.csv")
+    cca = pd.read_csv("msresist/data/Maynard/cancer_cell_annotation.csv")
     IDtoCNV = dict(zip(list(cca["cell_id"]), list(list(cca["inferCNV_annotation"]))))
     adata.obs.insert(
         3,
