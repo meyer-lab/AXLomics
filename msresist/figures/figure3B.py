@@ -16,6 +16,14 @@ from ..clinical_data import (
 from ..clustering import DDMC
 
 
+def make_C123_sign(X, ddmc):
+    """Return the C1/C2/C3 AXL signature DataFrame from DDMC clustering results."""
+    X = Introduce_Correct_DDMC_labels(X, ddmc)
+    return X[(X["Cluster"] == 1) | (X["Cluster"] == 2) | (X["Cluster"] == 3)][
+        ["Cluster", "Gene", "Position", "PC9 A", "KO A"]
+    ]
+
+
 def makeFigure():
     """Get a list of the axis objects and create a figure"""
     # Get list of axis objects
