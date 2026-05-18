@@ -63,9 +63,7 @@ def preprocess_AXL_RNAseq_data():
     rna = pd.read_feather(
         "msresist/data/RNAseq/AXLrna/AXLmutants_RNAseq_merged.feather"
     ).iloc[:, 1:]
-    idsT = pd.read_csv(
-        "msresist/data/RNAseq/AXLrna/transcripts_to_genes.csv"
-    )
+    idsT = pd.read_csv("msresist/data/RNAseq/AXLrna/transcripts_to_genes.csv")
     ids = dict(zip(idsT["ENSEMBL1"], idsT["SYMBOL"]))
     rna.insert(
         0, "Cell Lines", [s[:3] if "M1" in s else s[:2] for s in rna["Cell Line"]]

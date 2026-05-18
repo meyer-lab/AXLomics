@@ -24,9 +24,7 @@ def plot_AXLspecificity_heatmap(ax=None, type="Heatmap"):
     """Plot AXL specificity heatmap or logo."""
 
     # Import OPLS-like AXL specificity screen results
-    btn_logo = pd.read_csv(
-        "msresist/data/AXL_screen/BTN_OPLS_mean.csv"
-    )
+    btn_logo = pd.read_csv("msresist/data/AXL_screen/BTN_OPLS_mean.csv")
     btn_opls = btn_logo.set_index("Unnamed: 0")
     btn_opls = btn_opls.replace(np.nan, 0)
 
@@ -55,9 +53,7 @@ def plotViolin_HuTyr_vs_AXLspikedIn():
     Annotated human tyrosine sites versus sites measured in this study."""
 
     # Import AXL specificity screen results
-    pTyr = pd.read_csv(
-        "msresist/data/AXL_screen/final_filtered.csv"
-    )
+    pTyr = pd.read_csv("msresist/data/AXL_screen/final_filtered.csv")
     pTyr["Library"] = [
         "AXL spiked-in" if v != "0" else "pTyr-Var" for v in pTyr["marc_check"]
     ]

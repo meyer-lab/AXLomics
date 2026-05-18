@@ -37,9 +37,9 @@ def makeFigure():
     i = X.select_dtypes(include=["object"])
 
     # Fit DDMC
-    DDMC(
-        i, n_components=5, SeqWeight=2, distance_method="PAM250", random_state=5
-    ).fit(d)
+    DDMC(i, n_components=5, SeqWeight=2, distance_method="PAM250", random_state=5).fit(
+        d
+    )
 
     # GSEA
     ax.axis("off")

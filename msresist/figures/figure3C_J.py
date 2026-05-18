@@ -95,7 +95,9 @@ def plot_tsne(adata_egfr):
     sc.pl.tsne(adata_egfr, color=["Author's cell type"], ncols=1)
 
 
-MAYNARD_H5AD = "msresist/data/Maynard/8091e3d90a9045a181b2fc11000c0dd9_PMID32822576.h5ad"
+MAYNARD_H5AD = (
+    "msresist/data/Maynard/8091e3d90a9045a181b2fc11000c0dd9_PMID32822576.h5ad"
+)
 
 
 def preprocess_maynard():
@@ -160,12 +162,7 @@ def annotate_maynard(adata):
     )
 
     # Load AXL signature
-    c123 = (
-        pd.read_csv("msresist/results/C123.csv")
-        .dropna()
-        .iloc[:, -1]
-        .to_list()
-    )
+    c123 = pd.read_csv("msresist/results/C123.csv").dropna().iloc[:, -1].to_list()
     sc.tl.score_genes(adata, c123, score_name="AXL signature")
     sc.tl.score_genes(TvsNAT, c123, score_name="AXL signature")
     sc.tl.score_genes(cc, c123, score_name="AXL signature")
