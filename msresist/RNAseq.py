@@ -61,10 +61,10 @@ def cytoscape_input(ddmc, X):
 
 def preprocess_AXL_RNAseq_data():
     rna = pd.read_feather(
-        "/home/creixell/AXLomics/msresist/data/RNAseq/AXLrna/AXLmutants_RNAseq_merged.feather"
+        "msresist/data/RNAseq/AXLrna/AXLmutants_RNAseq_merged.feather"
     ).iloc[:, 1:]
     idsT = pd.read_csv(
-        "/home/creixell/AXLomics/msresist/data/RNAseq/AXLrna/transcripts_to_genes.csv"
+        "msresist/data/RNAseq/AXLrna/transcripts_to_genes.csv"
     )
     ids = dict(zip(idsT["ENSEMBL1"], idsT["SYMBOL"]))
     rna.insert(

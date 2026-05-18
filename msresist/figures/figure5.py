@@ -25,7 +25,7 @@ def plot_AXLspecificity_heatmap(ax=None, type="Heatmap"):
 
     # Import OPLS-like AXL specificity screen results
     btn_logo = pd.read_csv(
-        "/home/creixell/AXLomics/msresist/data/AXL_screen/BTN_OPLS_mean.csv"
+        "msresist/data/AXL_screen/BTN_OPLS_mean.csv"
     )
     btn_opls = btn_logo.set_index("Unnamed: 0")
     btn_opls = btn_opls.replace(np.nan, 0)
@@ -56,7 +56,7 @@ def plotViolin_HuTyr_vs_AXLspikedIn():
 
     # Import AXL specificity screen results
     pTyr = pd.read_csv(
-        "/home/creixell/AXLomics/msresist/data/AXL_screen/final_filtered.csv"
+        "msresist/data/AXL_screen/final_filtered.csv"
     )
     pTyr["Library"] = [
         "AXL spiked-in" if v != "0" else "pTyr-Var" for v in pTyr["marc_check"]
@@ -147,8 +147,9 @@ def plot_Specificity_Enrichment_by_DDMC_cluster():
         verbose=True,  # see what's going on behind the scenes
     )
 
+    available_terms = list(pre_res.res2d["Term"])
     pre_res.plot(
-        terms=["2", "3", "4"],
+        terms=available_terms[:3],
         # legend_kws={'loc': (1.2, 0)}, # set the legend loc
         show_ranking=True,  # whether to show the second yaxis
         figsize=(3, 4),
@@ -161,7 +162,7 @@ def label_AXLspecificity_peptides_by_DDMC():
     """Label AXL specificity peptides by DDMC cluster."""
 
     # Import AXL specificity screen results
-    X = pd.read_csv("/home/creixell/AXLomics/msresist/data/AXL_screen/AXL_ms_data.csv")
+    X = pd.read_csv("msresist/data/AXL_screen/AXL_ms_data.csv")
 
     # Import siganling data
     X_ms = preprocessing(

@@ -10,3 +10,4 @@ cache/requests-cache.sqlite
 **.c
 **.o
 msresist/data/RNAseq/AXLmutants_RNAseq_merged.feather
+output/

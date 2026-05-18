@@ -435,7 +435,7 @@ def plot_venn_diagram_YAP_AXL_signatures(C2_3, savefig=False, return_venn_dict=F
     venn_ordered = {k: venn_dict[k] for k in order}
 
     plt.figure(figsize=(8, 8))
-    venny4py(venn_ordered, colors=color_list)
+    venny4py(venn_ordered, colors=color_list, out="output")
     plt.title("Overlap between YAP signatures and AXL signature")
 
     if savefig:
