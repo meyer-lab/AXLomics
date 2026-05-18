@@ -21,7 +21,7 @@ msresist/data/RNAseq/AXLmutants_RNAseq_merged.feather: msresist/data/RNAseq/AXLm
 lint: .venv
 	uv run ruff check .
 
-notebooks: .venv
+notebooks: .venv msresist/data/RNAseq/AXLmutants_RNAseq_merged.feather
 	uv run jupyter nbconvert --execute --inplace *.ipynb
 
 clean:
