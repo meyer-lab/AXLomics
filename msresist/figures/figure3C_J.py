@@ -162,7 +162,7 @@ def annotate_maynard(adata):
 
     # Load AXL signature
     c123 = (
-        pd.read_csv("/home/creixell/AXLomics/msresist/results/C123.csv")
+        pd.read_csv("msresist/results/C123.csv")
         .dropna()
         .iloc[:, -1]
         .to_list()
